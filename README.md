@@ -19,9 +19,9 @@ Each product folder has its own README listing its skills and the exact prompts 
    ```
 2. Paste the prompt for your skill (from the product folder's README) into your coding agent. The prompt follows this pattern:
    ```
-   Read https://raw.githubusercontent.com/browserstack/agent-skills/<release-tag>/<product>/<skill>/SKILL.md, install it as a skill in this project, then follow it to run the <framework> sample build on BrowserStack.
+   Download https://raw.githubusercontent.com/browserstack/agent-skills/main/<product>/<skill>/SKILL.md and save it permanently in this project's skills folder as <skill-name>/SKILL.md, then follow that skill to run the <framework> sample build on BrowserStack.
    ```
-3. Answer the agent's questions and approve its plan. The agent installs the skill into its own skills folder, runs the build and returns the dashboard link.
+3. Answer the agent's questions and approve its plan. The agent saves the skill into its own skills folder (it stays installed for future sessions), runs the build and returns the dashboard link.
 
 If your agent cannot run shell commands, open the `SKILL.md` on GitHub and follow it manually.
 
@@ -36,9 +36,11 @@ If your agent cannot run shell commands, open the `SKILL.md` on GitHub and follo
 
 A skill folder is installed under the `name` in its `SKILL.md` frontmatter (for example `browserstack-app-automate-appium-python`).
 
-## Releases
+## Updates
 
-Each product is released independently with tags of the form `<product>-vX.Y.Z` (for example `app-automate-v1.0.0`). Prompts pin to a tag, so changes on `main` do not reach customers until a new tag is cut.
+Prompts point at the `main` branch, so changes merged to `main` reach new installs right away. Treat every merge as a release: test the prompt end to end from your branch before merging.
+
+An installed skill stays at the version it was downloaded at. To update, delete its folder from your skills folder and run the prompt again.
 
 ## Contributing
 

@@ -26,17 +26,19 @@ You USE your shell and file-editing tools to perform every action directly.
 
 ## Step 0: Install this skill (do this first, once)
 
-Skip this step if a folder named `browserstack-app-automate-appium-java` already exists in your skills folder (for example `.claude/skills/`, `.cursor/skills/`, `.github/skills/` or `.agents/skills/`; use the project-level folder your agent uses).
+Skip this step if `browserstack-app-automate-appium-java/SKILL.md` already exists in your skills folder (for example `.claude/skills/`, `.cursor/skills/`, `.github/skills/` or `.agents/skills/`; use the project-level folder your agent uses).
 
-1. Shallow-clone the repo at the release tag into a temporary folder:
+1. Create the folder `browserstack-app-automate-appium-java` in your skills folder.
+2. Download this file into it as `SKILL.md`:
    ```bash
-   TMP=$(mktemp -d) && git clone --depth 1 --branch app-automate-v1.0.0 https://github.com/browserstack/agent-skills.git "$TMP/agent-skills"
+   mkdir -p "<skills-folder>/browserstack-app-automate-appium-java" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/app-automate/appium-java/SKILL.md -o "<skills-folder>/browserstack-app-automate-appium-java/SKILL.md"
    ```
-2. Copy `app-automate/appium-java` from that clone into your skills folder, naming the destination folder `browserstack-app-automate-appium-java`.
-3. Delete the temporary clone.
-4. Tell the user in one line that the skill is installed, then continue with this session. Do not ask them to restart.
+   Replace `<skills-folder>` with your agent's project-level skills folder. The skill stays installed for future sessions.
+3. Tell the user in one line that the skill is installed, then continue with this session. Do not ask them to restart.
 
-If git, the network or the skills folder is unavailable, say so in one line and carry on using this file as instructions for this session only. Installation is a convenience; never block the run on it.
+To update the skill later, delete the folder and run the prompt again.
+
+If the network or the skills folder is unavailable, say so in one line and carry on using this file as instructions for this session only. Installation is a convenience; never block the run on it.
 
 ## Core Principle
 
