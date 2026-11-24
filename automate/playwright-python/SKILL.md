@@ -34,8 +34,8 @@ Look at the folder the user is in and its subfolders (read-only). This skill is 
 - Empty folder, or the user asked for the sample build → right skill, continue.
 - A Playwright Python project → right skill, continue.
 - A project in another language or framework → stop without changing anything. If you already
-  saved this skill into the project's skills folder, remove that folder again. Tell the user in one
-  line what you found and that this skill is for Playwright Python, then give them the prompt for the right
+  saved this skill into the project's skills folder, remove that folder again (and the skills
+  folder above it if that leaves it empty and you created it). Tell the user in one line what you found and that this skill is for Playwright Python, then give them the prompt for the right
   skill:
 
   - **Selenium Java** (`pom.xml` or `build.gradle` that depends on `selenium-java`):
@@ -66,7 +66,7 @@ project-level folder your agent uses).
 
 1. Create the folder `browserstack-automate-playwright-python` in your skills folder and download this file into it as `SKILL.md`:
    ```bash
-   mkdir -p "<skills-folder>/browserstack-automate-playwright-python" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-python/SKILL.md -o "<skills-folder>/browserstack-automate-playwright-python/SKILL.md" || rmdir "<skills-folder>/browserstack-automate-playwright-python"
+   mkdir -p "<skills-folder>/browserstack-automate-playwright-python" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-python/SKILL.md -o "<skills-folder>/browserstack-automate-playwright-python/SKILL.md" || rmdir -p "<skills-folder>/browserstack-automate-playwright-python" 2>/dev/null
    ```
    Replace `<skills-folder>` with your agent's project-level skills folder. The skill stays
    installed for future sessions.
@@ -127,7 +127,8 @@ the prompt again.
    browsers or devices to change."
 5. **After approval, run end to end** without asking again at each step, then report once. If the
    user asked you to set things up without running, stop after the changes, give them the run
-   command and the build name it will use, and don't run anything.
+   command and the build name it will use, and don't run anything. That build name stays until
+   `browserstack.yml` changes, so later runs share it with a different suffix.
 
 ## Which path?
 
@@ -166,7 +167,7 @@ Change only these two lines of `browserstack.yml`, and leave the rest as Browser
 BUILD_NAME="bsk-automate-playwright-python-sample-$(date +%Y%m%d-%H%M%S)"
 sed -i.bak -e "s/^buildName:.*/buildName: ${BUILD_NAME}/" \
            -e "s/^browserstackLocal:.*/browserstackLocal: false/" browserstack.yml && rm -f browserstack.yml.bak
-grep -qxF 'log/' .gitignore 2>/dev/null || echo 'log/' >> .gitignore
+git check-ignore -q log/sdk-cli.log || echo 'log/' >> .gitignore
 ```
 
 - **`buildName`** gets a unique name, so the API check below finds exactly this run. Keep the
@@ -185,16 +186,24 @@ grep -qxF 'log/' .gitignore 2>/dev/null || echo 'log/' >> .gitignore
 
 ### A4. Install and run
 
+The sample leaves Playwright unpinned, and Playwright Python 1.65 renamed an internal module the
+current SDK hooks into (Nov 2026), so install with Playwright pinned to 1.64.1. `--no-cache-dir`
+makes pip fetch the current SDK instead of reusing an older cached copy:
+
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt   # includes the current BrowserStack SDK from BrowserStack's server
+.venv/bin/pip install --no-cache-dir -r requirements.txt "playwright==1.64.1"
+.venv/bin/python -c "import browserstack_sdk._version as v; print(v.__version__)"
+sed -i.bak "s/osVersion: Ventura/osVersion: Sequoia/" browserstack.yml && rm -f browserstack.yml.bak
 .venv/bin/browserstack-sdk pytest -s tests/sample-test.py
 ```
 
-On Windows use `.venv\Scripts\pip` and `.venv\Scripts\browserstack-sdk`. The SDK runs
-`tests/sample-test.py` (adds a product to the cart on bstackdemo.com and checks the cart) on every
-platform in `browserstack.yml` (desktop Chrome, WebKit and Firefox), in parallel, and the test
-reports its own pass/fail. The browsers run on BrowserStack, so don't run `playwright install`.
+The `sed` line moves the sample's WebKit row from macOS Ventura to Sequoia: on Ventura WebKit the
+sample's `to_have_count` check fails every run (Nov 2026). List both the Playwright pin and this
+swap in the plan. On Windows use `.venv\Scripts\pip` and `.venv\Scripts\browserstack-sdk`. The SDK
+runs `tests/sample-test.py` (adds a product to the cart on bstackdemo.com and checks the cart) on
+every platform in `browserstack.yml` (desktop Chrome, WebKit and Firefox), in parallel, and the
+test reports its own pass/fail. The browsers run on BrowserStack, so don't run `playwright install`.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -210,9 +219,11 @@ Note these in a short Assessment block at the top of your plan:
   Plain scripts with `sync_playwright()` can run through `browserstack-sdk python <script>.py`;
   confirm on the API that sessions were created.
 - **Versions:** `playwright` and `pytest-playwright` from `requirements.txt` or `pyproject.toml`;
-  keep the user's versions.
-- **Framework clash:** if `selenium` is installed or listed too, the SDK may patch Selenium instead
-  of Playwright. Use a separate virtual environment with only the Playwright stack (B2).
+  keep the user's versions, except Playwright 1.65 or newer, which the current SDK can't hook yet
+  (Nov 2026): propose `playwright==1.64.1` in the BrowserStack `.venv` and say why.
+- **Framework clash:** if the user's own `selenium` packages are installed or listed too, the SDK
+  may patch Selenium instead of Playwright. Use a separate virtual environment without them (B2);
+  the SDK pulls in its own Selenium, which is fine.
 - **Browser launch the SDK can't wrap:** `executable_path`, `launch_persistent_context`, or
   `connect()` to another endpoint runs on the local machine while the result still looks green.
   Propose the standard fixtures or `browser_type.launch()`.
@@ -224,13 +235,13 @@ Note these in a short Assessment block at the top of your plan:
 
 ### B2. Changes to put in your plan (each one shown as a diff)
 
-1. **A virtual environment with only the Playwright stack** (a new folder, `.venv`): the user's
-   own `playwright`, `pytest-playwright` and runner versions plus the current BrowserStack SDK from
-   BrowserStack's server. PyPI's `browserstack-sdk` lags well behind, so don't install it from there:
+1. **A virtual environment for the BrowserStack run** (a new folder, `.venv`) without the user's
+   Selenium packages: their `playwright`, `pytest-playwright` and runner versions plus the current
+   BrowserStack SDK from BrowserStack's server. PyPI's `browserstack-sdk` lags well behind, so don't install it from there:
    ```bash
    python3 -m venv .venv
-   .venv/bin/pip install "playwright==<their version>" "pytest-playwright==<their version>" \
-     https://sdk-assets.browserstack.com/python/browserstack_sdk-latest.tar.gz
+   .venv/bin/pip install --no-cache-dir "playwright==<their version>" "pytest-playwright==<their version>" \
+     "pytest==<their version>" https://sdk-assets.browserstack.com/python/browserstack_sdk-latest.tar.gz
    .venv/bin/python -c "import browserstack_sdk._version as v; print(v.__version__)"
    ```
 2. **Pin the SDK by URL in `requirements.txt`** (diff), so the next install gets the same version
@@ -291,6 +302,9 @@ itself). Before the run, check both of these and put any problem in the plan ins
   prints `no Rosetta` when it would fail to start (error `-86`). Ask the user to install Rosetta
   (`softwareupdate --install-rosetta`) themselves, then run the prompt again.
 
+If either check fails, don't ask for OK: end the plan with what the user must fix first, and
+change nothing.
+
 ### B3. Run
 
 - **pytest:** `.venv/bin/browserstack-sdk pytest <tests>` (never bare `pytest`, which runs locally).
@@ -326,6 +340,10 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   - The SDK marks pytest and behave sessions. If they show `done` and have no name, the SDK
     detected the wrong framework: check `framework:` in `browserstack.yml`, then mark each session
     from the runner's result as shown below.
+  - `pytest-playwright` reuses one browser per platform, so several tests share one session, named
+    after the last test and marked with its result. Report per-test results from pytest's output;
+    if a test failed while its session shows `passed`, mark the session `failed` with that test's
+    name and assertion.
 - To mark a session yourself from the test runner's own result (use the assertion message as the
   reason for a failure, and say in your report that you marked it):
   ```bash
@@ -333,7 +351,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
     -d '{"status":"passed","reason":"Marked from the test runner result"}' \
     "https://api.browserstack.com/automate/sessions/<session_hashed_id>.json"
   ```
-  Only do this when you can tell which test result belongs to which session (one test per
+  If the session has no name, add `"name":"<test name>"` to the same body. Only do this when you
+  can tell which test result belongs to which session (one test per
   platform, or session names that carry the test name). Otherwise report the runner's result and
   explain that the dashboard shows `done`.
 
@@ -364,8 +383,8 @@ Report failures as results. Don't change test code to make them pass unless the 
 - **Sample build:** never edit BrowserStack's sample.
   - Failed the same way on every platform: the sample itself is out of date (for example a
     locator the demo site now matches more than once, or no wait for the product list). Say so
-    plainly, note that the connection and pass/fail reporting worked, and offer to run the user's
-    own tests instead.
+    plainly, note that the sessions ran on BrowserStack and their results are on the dashboard
+    (say if you marked them yourself), and offer to run the user's own tests instead.
   - Failed on one platform with an element-not-found error right after the page loaded: a timing
     flake in the sample. Re-run once with a new build name and report both builds.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
@@ -383,9 +402,9 @@ After the report, offer three or four of these, one line each, then wait for the
   the same pool; it is how many tests each platform runs at once in a full suite, so don't cap it
   at the number of tests in this run.
 - **Real iPhone:** add a real iPhone 15 (Safari) as its own build. Set expectations first:
-  Playwright on real iOS is a custom WebKit integration with limits (one browser context per
-  session; storage state, `setContent` and tracing are not supported), so a failure there
-  doesn't change the desktop results. Real Android phones need BrowserStack's device API rather
+  Playwright on real iOS is a custom WebKit integration with limits (for example one browser
+  context per session, and some keyboard and multi-tab behaviour differs from desktop WebKit), so
+  a failure there doesn't change the desktop results. Real Android phones need BrowserStack's device API rather
   than a normal browser launch, so this skill doesn't set them up: see the Playwright Android docs.
 - **Wider coverage:** add Edge, older browser versions or other operating systems.
 - **Your own app:** after the sample build, run their own Playwright Python tests; for localhost or staging,
@@ -401,16 +420,18 @@ After the report, offer three or four of these, one line each, then wait for the
 | `All parallel tests are currently in use` | The plan's parallel limit is reached; lower `parallelsPerPlatform` or wait |
 | `Browser/OS combination not supported` | A retired device or OS version: re-check the catalog (step A3), swap to the closest current one and re-run once |
 | Session fails to start with a connect timeout while parallels are free | Usually transient: re-run once. If it repeats, the network may block `*.browserstack.com` (allow outbound HTTPS) |
-| `Executable doesn't exist … playwright install` | The run didn't go through the SDK: start it with `.venv/bin/browserstack-sdk pytest` |
-| Tests run on the user's machine and the API shows no build | Selenium in the same environment, or a custom launch: use a Playwright-only `.venv` (B2) and the standard fixtures |
+| `failed to setup playwright: No module named 'playwright._impl._connection'`, then no build on the API | The SDK can't hook this Playwright version (1.65 or newer, Nov 2026): install `playwright==1.64.1` in the `.venv` and re-run. This shows in the console, not in `log/`, so read both |
+| `Executable doesn't exist … playwright install` | The SDK didn't take over the launch: either the run didn't start with `.venv/bin/browserstack-sdk`, or the SDK can't hook this Playwright version (row above) |
+| Tests run on the user's machine and the API shows no build | The user's Selenium packages in the same environment, or a custom launch: use the separate `.venv` (B2) and the standard fixtures |
 | Sessions have no name and stay `done` | The SDK detected the wrong framework: set `framework: pytest` (or `behave`) in `browserstack.yml` |
+| macOS Ventura WebKit: `LocatorAssertions.to_have_count` fails with an empty message | Seen on every Ventura WebKit run of the sample (Nov 2026): use macOS Sequoia for WebKit |
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
 
 ## Quick reference
 
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone https://github.com/browserstack/pytest-playwright-browserstack.git && cd pytest-playwright-browserstack && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/browserstack-sdk pytest -s tests/sample-test.py` |
+| Sample build | `git clone https://github.com/browserstack/pytest-playwright-browserstack.git && cd pytest-playwright-browserstack && python3 -m venv .venv && .venv/bin/pip install --no-cache-dir -r requirements.txt "playwright==1.64.1" && .venv/bin/browserstack-sdk pytest -s tests/sample-test.py` |
 | Your tests | `.venv/bin/browserstack-sdk pytest` |
 | Current SDK version | `.venv/bin/python -c "import browserstack_sdk._version as v; print(v.__version__)"` |
 | Docs | https://www.browserstack.com/docs/automate/playwright/getting-started/python |

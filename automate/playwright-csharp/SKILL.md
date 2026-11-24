@@ -34,8 +34,8 @@ Look at the folder the user is in and its subfolders (read-only). This skill is 
 - Empty folder, or the user asked for the sample build → right skill, continue.
 - A Playwright C# project → right skill, continue.
 - A project in another language or framework → stop without changing anything. If you already
-  saved this skill into the project's skills folder, remove that folder again. Tell the user in one
-  line what you found and that this skill is for Playwright C#, then give them the prompt for the right
+  saved this skill into the project's skills folder, remove that folder again (and the skills
+  folder above it if that leaves it empty and you created it). Tell the user in one line what you found and that this skill is for Playwright C#, then give them the prompt for the right
   skill:
 
   - **Selenium Java** (`pom.xml` or `build.gradle` that depends on `selenium-java`):
@@ -66,7 +66,7 @@ project-level folder your agent uses).
 
 1. Create the folder `browserstack-automate-playwright-csharp` in your skills folder and download this file into it as `SKILL.md`:
    ```bash
-   mkdir -p "<skills-folder>/browserstack-automate-playwright-csharp" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-csharp/SKILL.md -o "<skills-folder>/browserstack-automate-playwright-csharp/SKILL.md" || rmdir "<skills-folder>/browserstack-automate-playwright-csharp"
+   mkdir -p "<skills-folder>/browserstack-automate-playwright-csharp" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-csharp/SKILL.md -o "<skills-folder>/browserstack-automate-playwright-csharp/SKILL.md" || rmdir -p "<skills-folder>/browserstack-automate-playwright-csharp" 2>/dev/null
    ```
    Replace `<skills-folder>` with your agent's project-level skills folder. The skill stays
    installed for future sessions.
@@ -127,7 +127,8 @@ the prompt again.
    browsers or devices to change."
 5. **After approval, run end to end** without asking again at each step, then report once. If the
    user asked you to set things up without running, stop after the changes, give them the run
-   command and the build name it will use, and don't run anything.
+   command and the build name it will use, and don't run anything. That build name stays until
+   `browserstack.yml` changes, so later runs share it with a different suffix.
 
 ## Which path?
 
@@ -167,7 +168,7 @@ Change only these two lines of `browserstack.yml`, and leave the rest as Browser
 BUILD_NAME="bsk-automate-playwright-csharp-sample-$(date +%Y%m%d-%H%M%S)"
 sed -i.bak -e "s/^buildName:.*/buildName: ${BUILD_NAME}/" \
            -e "s/^browserstackLocal:.*/browserstackLocal: false/" browserstack.yml && rm -f browserstack.yml.bak
-grep -qxF 'log/' .gitignore 2>/dev/null || echo 'log/' >> .gitignore
+git check-ignore -q log/sdk-cli.log || echo 'log/' >> .gitignore
 ```
 
 - **`buildName`** gets a unique name, so the API check below finds exactly this run. Keep the
@@ -186,19 +187,22 @@ grep -qxF 'log/' .gitignore 2>/dev/null || echo 'log/' >> .gitignore
 
 ### A4. Install and run
 
-The sample project targets `net6.0`. If `dotnet --list-runtimes` shows no `Microsoft.NETCore.App
-6.0.x`, let it run on the newest installed runtime without changing any file:
+The sample floats `Microsoft.Playwright.NUnit` to the latest release but pins an older
+`Microsoft.NET.Test.Sdk`, so restore stops with `NU1605: Detected package downgrade`; and it targets
+`net6.0`. Both are handled with environment variables, without changing any file:
 
 ```bash
-DOTNET_ROLL_FORWARD=Major dotnet test --filter "Category=sample-test"
+NoWarn=NU1605 DOTNET_ROLL_FORWARD=Major dotnet test --filter "Category=sample-test"
 ```
 
-With a 6.0 runtime installed, drop `DOTNET_ROLL_FORWARD=Major` (PowerShell:
-`$env:DOTNET_ROLL_FORWARD="Major"` first). The BrowserStack SDK (the `BrowserStack.TestAdapter`
-package already in the project) runs `SampleTest` (adds a product to the cart on bstackdemo.com
-and checks the cart) on every platform in `browserstack.yml` (desktop Chrome, WebKit and Firefox),
-in parallel. The build may also add the SDK's own `browserstack-sdk` tool to a
-`dotnet-tools.json`: list it in the plan. Warnings that `net6.0` is out of support are harmless.
+`NoWarn` must be an environment variable, not `-p:NoWarn`, because the SDK runs its own restore.
+With a 6.0 runtime installed, drop `DOTNET_ROLL_FORWARD=Major`. PowerShell: set
+`$env:NoWarn="NU1605"` and `$env:DOTNET_ROLL_FORWARD="Major"` first. The BrowserStack SDK (the
+`BrowserStack.TestAdapter` package already in the project) runs `SampleTest` (adds a product to
+the cart on bstackdemo.com and checks the cart) on every platform in `browserstack.yml` (desktop
+Chrome, WebKit and Firefox), in parallel. The build also adds the SDK's own `browserstack-sdk` tool
+to a `dotnet-tools.json`: list it in the plan. Warnings that `net6.0` is out of support are harmless.
+If a first attempt failed, delete `bin/` and `obj/` before running again (see Troubleshooting).
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -284,6 +288,9 @@ itself). Before the run, check both of these and put any problem in the plan ins
   prints `no Rosetta` when it would fail to start (error `-86`). Ask the user to install Rosetta
   (`softwareupdate --install-rosetta`) themselves, then run the prompt again.
 
+If either check fails, don't ask for OK: end the plan with what the user must fix first, and
+change nothing.
+
 ### B3. Run
 
 Build first: the SDK hooks into the test assembly at build time.
@@ -329,7 +336,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
     -d '{"status":"passed","reason":"Marked from the test runner result"}' \
     "https://api.browserstack.com/automate/sessions/<session_hashed_id>.json"
   ```
-  Only do this when you can tell which test result belongs to which session (one test per
+  If the session has no name, add `"name":"<test name>"` to the same body. Only do this when you
+  can tell which test result belongs to which session (one test per
   platform, or session names that carry the test name). Otherwise report the runner's result and
   explain that the dashboard shows `done`.
 
@@ -360,8 +368,8 @@ Report failures as results. Don't change test code to make them pass unless the 
 - **Sample build:** never edit BrowserStack's sample.
   - Failed the same way on every platform: the sample itself is out of date (for example a
     locator the demo site now matches more than once, or no wait for the product list). Say so
-    plainly, note that the connection and pass/fail reporting worked, and offer to run the user's
-    own tests instead.
+    plainly, note that the sessions ran on BrowserStack and their results are on the dashboard
+    (say if you marked them yourself), and offer to run the user's own tests instead.
   - Failed on one platform with an element-not-found error right after the page loaded: a timing
     flake in the sample. Re-run once with a new build name and report both builds.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
@@ -379,9 +387,9 @@ After the report, offer three or four of these, one line each, then wait for the
   the same pool; it is how many tests each platform runs at once in a full suite, so don't cap it
   at the number of tests in this run.
 - **Real iPhone:** add a real iPhone 15 (Safari) as its own build. Set expectations first:
-  Playwright on real iOS is a custom WebKit integration with limits (one browser context per
-  session; storage state, `setContent` and tracing are not supported), so a failure there
-  doesn't change the desktop results. Real Android phones need BrowserStack's device API rather
+  Playwright on real iOS is a custom WebKit integration with limits (for example one browser
+  context per session, and some keyboard and multi-tab behaviour differs from desktop WebKit), so
+  a failure there doesn't change the desktop results. Real Android phones need BrowserStack's device API rather
   than a normal browser launch, so this skill doesn't set them up: see the Playwright Android docs.
 - **Wider coverage:** add Edge, older browser versions or other operating systems.
 - **Your own app:** after the sample build, run their own Playwright C# tests; for localhost or staging,
@@ -399,7 +407,8 @@ After the report, offer three or four of these, one line each, then wait for the
 | Session fails to start with a connect timeout while parallels are free | Usually transient: re-run once. If it repeats, the network may block `*.browserstack.com` (allow outbound HTTPS) |
 | `dotnet test` finishes with 0 tests run, or runs locally | An outdated `BrowserStack.TestAdapter`: update it to the current release (B2, step 1) |
 | `You must install or update .NET to run this application` | The target framework's runtime isn't installed: prefix `DOTNET_ROLL_FORWARD=Major`, or use `-f <installed version>` |
-| `Executable doesn't exist … playwright.ps1 install` | The launch wasn't routed: check `BrowserStack.TestAdapter` is in the `.csproj` and run `dotnet build` before `dotnet test` |
+| `NU1605: Detected package downgrade: Microsoft.NET.Test.Sdk` | A floating `Microsoft.Playwright.NUnit` needs a newer `Microsoft.NET.Test.Sdk` than the project pins. Sample build: run with the environment variable `NoWarn=NU1605` (A4). Your project: propose raising `Microsoft.NET.Test.Sdk` to 17.8 or newer |
+| `Executable doesn't exist … playwright.ps1 install` | The launch wasn't routed: check `BrowserStack.TestAdapter` is in the `.csproj` and run `dotnet build` before `dotnet test`. After a failed build, delete `bin/` and `obj/` first: the SDK otherwise reuses the patch from the failed build and the browsers launch locally |
 | Test host crashed with `JsonReaderException … AtomicFile`, or the output shows another project's tests | Another .NET SDK run is active on this machine (they share `$TMPDIR/.browserstack/`, which also holds a copy of the credentials): run one at a time, and trust the API |
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
 
@@ -407,7 +416,7 @@ After the report, offer three or four of these, one line each, then wait for the
 
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone https://github.com/browserstack/csharp-playwright-browserstack.git && cd csharp-playwright-browserstack/CSharp-Playwright-BrowserStack && DOTNET_ROLL_FORWARD=Major dotnet test --filter "Category=sample-test"` |
+| Sample build | `git clone https://github.com/browserstack/csharp-playwright-browserstack.git && cd csharp-playwright-browserstack/CSharp-Playwright-BrowserStack && NoWarn=NU1605 DOTNET_ROLL_FORWARD=Major dotnet test --filter "Category=sample-test"` |
 | Your tests | `dotnet build <Tests.csproj> && dotnet test <Tests.csproj>` |
 | Current SDK version | `curl -s https://api.nuget.org/v3-flatcontainer/browserstack.testadapter/index.json` (last entry) |
 | Installed runtimes | `dotnet --list-runtimes` |

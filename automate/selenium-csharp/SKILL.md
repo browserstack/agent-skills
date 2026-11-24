@@ -34,8 +34,8 @@ Look at the folder the user is in and its subfolders (read-only). This skill is 
 - Empty folder, or the user asked for the sample build → right skill, continue.
 - A Selenium C# project → right skill, continue.
 - A project in another language or framework → stop without changing anything. If you already
-  saved this skill into the project's skills folder, remove that folder again. Tell the user in one
-  line what you found and that this skill is for Selenium C#, then give them the prompt for the right
+  saved this skill into the project's skills folder, remove that folder again (and the skills
+  folder above it if that leaves it empty and you created it). Tell the user in one line what you found and that this skill is for Selenium C#, then give them the prompt for the right
   skill:
 
   - **Selenium Java** (`pom.xml` or `build.gradle` that depends on `selenium-java`):
@@ -66,7 +66,7 @@ project-level folder your agent uses).
 
 1. Create the folder `browserstack-automate-selenium-csharp` in your skills folder and download this file into it as `SKILL.md`:
    ```bash
-   mkdir -p "<skills-folder>/browserstack-automate-selenium-csharp" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-csharp/SKILL.md -o "<skills-folder>/browserstack-automate-selenium-csharp/SKILL.md" || rmdir "<skills-folder>/browserstack-automate-selenium-csharp"
+   mkdir -p "<skills-folder>/browserstack-automate-selenium-csharp" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-csharp/SKILL.md -o "<skills-folder>/browserstack-automate-selenium-csharp/SKILL.md" || rmdir -p "<skills-folder>/browserstack-automate-selenium-csharp" 2>/dev/null
    ```
    Replace `<skills-folder>` with your agent's project-level skills folder. The skill stays
    installed for future sessions.
@@ -127,7 +127,8 @@ the prompt again.
    browsers or devices to change."
 5. **After approval, run end to end** without asking again at each step, then report once. If the
    user asked you to set things up without running, stop after the changes, give them the run
-   command and the build name it will use, and don't run anything.
+   command and the build name it will use, and don't run anything. That build name stays until
+   `browserstack.yml` changes, so later runs share it with a different suffix.
 
 ## Which path?
 
@@ -167,7 +168,7 @@ Change only these two lines of `browserstack.yml`, and leave the rest as Browser
 BUILD_NAME="bsk-automate-selenium-csharp-sample-$(date +%Y%m%d-%H%M%S)"
 sed -i.bak -e "s/^buildName:.*/buildName: ${BUILD_NAME}/" \
            -e "s/^browserstackLocal:.*/browserstackLocal: false/" browserstack.yml && rm -f browserstack.yml.bak
-grep -qxF 'log/' .gitignore 2>/dev/null || echo 'log/' >> .gitignore
+git check-ignore -q log/sdk-cli.log || echo 'log/' >> .gitignore
 ```
 
 - **`buildName`** gets a unique name, so the API check below finds exactly this run. Keep the
@@ -287,6 +288,9 @@ itself). Before the run, check both of these and put any problem in the plan ins
   prints `no Rosetta` when it would fail to start (error `-86`). Ask the user to install Rosetta
   (`softwareupdate --install-rosetta`) themselves, then run the prompt again.
 
+If either check fails, don't ask for OK: end the plan with what the user must fix first, and
+change nothing.
+
 ### B3. Run
 
 Build first: the SDK hooks into the test assembly at build time.
@@ -332,7 +336,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
     -d '{"status":"passed","reason":"Marked from the test runner result"}' \
     "https://api.browserstack.com/automate/sessions/<session_hashed_id>.json"
   ```
-  Only do this when you can tell which test result belongs to which session (one test per
+  If the session has no name, add `"name":"<test name>"` to the same body. Only do this when you
+  can tell which test result belongs to which session (one test per
   platform, or session names that carry the test name). Otherwise report the runner's result and
   explain that the dashboard shows `done`.
 
@@ -363,8 +368,8 @@ Report failures as results. Don't change test code to make them pass unless the 
 - **Sample build:** never edit BrowserStack's sample.
   - Failed the same way on every platform: the sample itself is out of date (for example a
     locator the demo site now matches more than once, or no wait for the product list). Say so
-    plainly, note that the connection and pass/fail reporting worked, and offer to run the user's
-    own tests instead.
+    plainly, note that the sessions ran on BrowserStack and their results are on the dashboard
+    (say if you marked them yourself), and offer to run the user's own tests instead.
   - Failed on one platform with an element-not-found error right after the page loaded: a timing
     flake in the sample. Re-run once with a new build name and report both builds.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one

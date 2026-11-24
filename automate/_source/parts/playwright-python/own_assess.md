@@ -4,9 +4,11 @@ Note these in a short Assessment block at the top of your plan:
   Plain scripts with `sync_playwright()` can run through `browserstack-sdk python <script>.py`;
   confirm on the API that sessions were created.
 - **Versions:** `playwright` and `pytest-playwright` from `requirements.txt` or `pyproject.toml`;
-  keep the user's versions.
-- **Framework clash:** if `selenium` is installed or listed too, the SDK may patch Selenium instead
-  of Playwright. Use a separate virtual environment with only the Playwright stack (B2).
+  keep the user's versions, except Playwright 1.65 or newer, which the current SDK can't hook yet
+  (Nov 2026): propose `playwright==1.64.1` in the BrowserStack `.venv` and say why.
+- **Framework clash:** if the user's own `selenium` packages are installed or listed too, the SDK
+  may patch Selenium instead of Playwright. Use a separate virtual environment without them (B2);
+  the SDK pulls in its own Selenium, which is fine.
 - **Browser launch the SDK can't wrap:** `executable_path`, `launch_persistent_context`, or
   `connect()` to another endpoint runs on the local machine while the result still looks green.
   Propose the standard fixtures or `browser_type.launch()`.
