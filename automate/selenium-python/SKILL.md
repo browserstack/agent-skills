@@ -236,6 +236,10 @@ Note these in a short Assessment block at the top of your plan:
    ```
    browserstack-sdk @ https://sdk-assets.browserstack.com/python/browserstack_sdk-<version>.tar.gz
    ```
+   The plan can show this line with `<version>` until the install reveals it. If `requirements.txt`
+   also lists `playwright` or `pytest-playwright`, say in the report that a full `pip install -r requirements.txt`
+   brings the clash back, and offer a lasting fix: a separate `requirements-browserstack.txt`
+   with only this stack.
 3. **Don't run `browserstack-sdk setup`**: it writes `browserstack.yml` with the credentials inline.
    Use the file below instead.
 4. **`maximize_window()` on real phones** (only if the plan includes phones): run it on desktop only:
