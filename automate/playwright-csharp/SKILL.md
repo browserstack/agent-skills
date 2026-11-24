@@ -91,7 +91,8 @@ the prompt again.
 - **Stay in scope:** BrowserStack wiring and the fixes listed in this skill. Don't refactor app code.
 - **Never install system software** (runtimes, Rosetta, browsers, build tools). Tell the user what
   to install and stop. Project-local packages (a virtual environment, `node_modules`, Maven or
-  NuGet dependencies) are fine.
+  NuGet dependencies) are fine, and so is BrowserStack's own Local binary when the plan names the
+  download and the user approves it (see Private apps).
 - **Data:** a cloud run uploads the page URL, page content and a session video to BrowserStack.
   For a private or internal app, use BrowserStack Local and say so in your plan.
 
@@ -225,8 +226,20 @@ Note these in a short Assessment block at the top of your plan:
   `LaunchPersistentContextAsync` or `ConnectAsync` to another endpoint runs on the local machine.
 - **Target framework runtime:** if the project targets a .NET version whose runtime isn't
   installed, plan to run with `DOTNET_ROLL_FORWARD=Major` (no file change).
-- **Real devices:** a real iPhone is available on request. Real Android phones need BrowserStack's
-  device API (`Android.ConnectAsync`), which is a code change, so this skill doesn't set them up.
+- **Real iPhone (on request, as its own build):** for that run, use only this platform in
+  `browserstack.yml` with a new `buildName` (check it against the live catalog as in step A3), and
+  put the desktop rows back afterwards if the user wants both:
+  ```yaml
+  platforms:
+    - deviceName: iPhone 15
+      osVersion: 17
+      browserName: safari
+  ```
+  The SDK opens one session per test, so `PageTest` and `LaunchAsync` tests stay within iOS's
+  one-context limit, and it names and marks each session (verified Nov 2026).
+- **Real Android:** needs BrowserStack's device API (`Android.ConnectAsync`), which is a code
+  change, so this skill doesn't set it up. Never add an Android row: device sessions still start
+  and stay `done` (see Troubleshooting). Point the user to https://www.browserstack.com/docs/automate/playwright/playwright-android/c-sharp.
 - **Which tests to run:** the ones the user named (as a `dotnet test --filter`); otherwise all. If
   they named a flow that has no test, pick the test whose name is the nearest step in that flow,
   and if two are equally close, the first by file path. State the pick and why.
@@ -281,16 +294,30 @@ covers a module's `log/` folder.
 
 **Private apps (BrowserStack Local).** Set `browserstackLocal: true` only when the tests open
 `localhost`, a private IP or a staging host, and say so in the plan (the SDK starts the tunnel
-itself). Before the run, check both of these and put any problem in the plan instead of running:
-- The app answers on this machine, for example `curl -sI http://localhost:3000 | head -1`. If it
-  doesn't, ask the user to start it.
-- On a Mac with Apple silicon, the Local binary the SDK uses may be an Intel build that needs
-  Rosetta. `[ "$(uname -m)" = arm64 ] && ! arch -x86_64 /usr/bin/true 2>/dev/null && echo "no Rosetta"`
-  prints `no Rosetta` when it would fail to start (error `-86`). Ask the user to install Rosetta
-  (`softwareupdate --install-rosetta`) themselves, then run the prompt again.
-
-If either check fails, don't ask for OK: end the plan with what the user must fix first, and
-change nothing.
+itself). Before the run, check these and put any problem in the plan:
+- The app answers on this machine at the URL the tests open, for example
+  `curl -sI http://localhost:3000/dashboard | head -1`. If it doesn't, ask the user to start it, and
+  don't ask for OK: end the plan with that and change nothing.
+- On a Mac with Apple silicon (`uname -m` prints `arm64`), the SDK starts BrowserStack's Intel Local
+  binary, which fails without Rosetta (error `-86`). Use BrowserStack's native Apple-silicon binary
+  instead. Don't move or replace the SDK's own copy in `~/.browserstack/`, and don't install Rosetta.
+  1. Check for it: `B="$HOME/.browserstack/arm64/BrowserStackLocal"; [ -x "$B" ] && "$B" --version`
+     (or ask whether the user already keeps the arm64 binary somewhere else).
+  2. If it isn't there, put this download in the plan (the official "macOS (Arm64)" link from
+     https://www.browserstack.com/docs/local-testing/releases-and-downloads):
+     ```bash
+     mkdir -p ~/.browserstack/arm64 && curl -fsSL https://local-downloads.browserstack.com/BrowserStackLocal-darwin-arm64.zip -o ~/.browserstack/arm64/bslocal.zip \
+       && unzip -o ~/.browserstack/arm64/bslocal.zip -d ~/.browserstack/arm64 && rm ~/.browserstack/arm64/bslocal.zip
+     ```
+  3. Point the SDK at it in `browserstack.yml`, with the absolute path (the SDK still starts and stops
+     the tunnel and passes the key itself):
+     ```yaml
+     browserstackLocal: true
+     browserStackLocalOptions:
+       binarypath: /Users/<user>/.browserstack/arm64/BrowserStackLocal
+     ```
+     Verified with the Java, Python, Node and .NET SDKs (Nov 2026). After the run, a `[SUCCESS]` line
+     in `log/local.log` shows the tunnel came up.
 
 ### B3. Run
 
@@ -322,11 +349,18 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
 
 - Match the build by **prefix**: the SDK appends an identifier, so `bsk-…-0930` shows up as
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
-  default 10 within minutes.
+  default 10 within minutes. If more than one build matches (a shared account), use the
+  hashed_id from the SDK's `View build on BrowserStack dashboard` line, or the build whose
+  sessions match your platforms and start time.
 - **No matching build, or 0 sessions** → the tests did not reach BrowserStack. Read the SDK's own
   logs in the `log/` folder next to `browserstack.yml` (mask the key first) before guessing; then
   see Troubleshooting. Report what stopped the run and the fix, without a dashboard link.
-- **Each session's `status`:** `passed` or `failed` means the result reached the dashboard.
+- **Each session's `status`:** `passed` or `failed` means the result reached the dashboard. Report
+  from the sessions: the build's own `status` can read `failed` while every session passed (for
+  example when a test closes Playwright without closing the browser). If the test runner reports
+  a failed test for a platform whose session shows `passed`, trust the runner: mark that session
+  `failed` with the runner's message (below) and say so in the report. The SDK has been seen
+  marking a timed-out test `passed`.
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
   - If sessions show `done`, mark each from `dotnet test`'s results as shown below (session names
     carry the test's full name when the SDK set them).
@@ -387,11 +421,12 @@ After the report, offer three or four of these, one line each, then wait for the
   plan limits. K = max(1, ⌊free ÷ platforms⌋), capped at 5 because other people on the team share
   the same pool; it is how many tests each platform runs at once in a full suite, so don't cap it
   at the number of tests in this run.
-- **Real iPhone:** add a real iPhone 15 (Safari) as its own build. Set expectations first:
+- **Real iPhone:** add a real iPhone 15 (Safari) as its own build (B1 has the row and how). After
+  an iPhone-only run, offer the desktop build instead. Set expectations first:
   Playwright on real iOS is a custom WebKit integration with limits (for example one browser
   context per session, and some keyboard and multi-tab behaviour differs from desktop WebKit), so
   a failure there doesn't change the desktop results. Real Android phones need BrowserStack's device API rather
-  than a normal browser launch, so this skill doesn't set them up: see the Playwright Android docs.
+  than a normal browser launch, so this skill doesn't set them up: see https://www.browserstack.com/docs/automate/playwright/playwright-android/c-sharp.
 - **Wider coverage:** add Edge, older browser versions or other operating systems.
 - **Your own app:** after the sample build, run their own Playwright C# tests; for localhost or staging,
   turn on BrowserStack Local.
@@ -402,7 +437,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | Symptom | Cause and fix |
 | --- | --- |
 | Tests pass locally but the API shows no build | The run did not go through the BrowserStack SDK. Check the run command and wiring below, and read `log/sdk-cli.log` (mask the key) |
-| Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → ask the user to install Rosetta themselves (`softwareupdate --install-rosetta`), then re-run |
+| Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → point `browserStackLocalOptions.binarypath` at BrowserStack's native Apple-silicon binary (see Private apps) and re-run |
 | `All parallel tests are currently in use` | The plan's parallel limit is reached; lower `parallelsPerPlatform` or wait |
 | `Browser/OS combination not supported` | A retired device or OS version: re-check the catalog (step A3), swap to the closest current one and re-run once |
 | Session fails to start with a connect timeout while parallels are free | Usually transient: re-run once. If it repeats, the network may block `*.browserstack.com` (allow outbound HTTPS) |
@@ -412,6 +447,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | `Executable doesn't exist … playwright.ps1 install` | The launch wasn't routed: check `BrowserStack.TestAdapter` is in the `.csproj` and run `dotnet build` before `dotnet test`. After a failed build, delete `bin/` and `obj/` first: the SDK otherwise reuses the patch from the failed build and the browsers launch locally |
 | Test host crashed with `JsonReaderException … AtomicFile`, or the output shows another project's tests | Another .NET SDK run is active on this machine (they share `$TMPDIR/.browserstack/`, which also holds a copy of the credentials): run one at a time, and trust the API |
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
+| Real Android: every test fails with `KeyNotFoundException: The given key 'AndroidDevice' was not present in the dictionary`; sessions stay `done` with no name | Desktop-style tests can't drive real Android: remove the Android row (B1) |
 
 ## Quick reference
 

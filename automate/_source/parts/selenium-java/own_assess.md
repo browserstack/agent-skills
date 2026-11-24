@@ -3,7 +3,8 @@ Note these in a short Assessment block at the top of your plan:
 - **Build tool:** `pom.xml` → Maven; `build.gradle` / `build.gradle.kts` → Gradle (use `./gradlew`
   if the repo has it). A Gradle project needs Gradle (the wrapper or `gradle`) on this machine:
   if neither works, say what to install and stop. Never convert the build to Maven. In a multi-module repo, pick the module that has the Selenium tests, wire
-  only that module, and run it from the root with `mvn -pl <module> test`.
+  only that module, and run it from the root with `mvn -pl <module> test` (Gradle:
+  `gradle :<module>:browserstackTest`).
 - **Test framework:** JUnit 5 (`org.junit.jupiter`), JUnit 4, TestNG, Cucumber, or none (a plain
   `main()` run by `exec-maven-plugin`).
 - **Selenium version:** 4.x is required; 3.x needs the upgrade in B2.

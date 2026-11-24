@@ -91,7 +91,8 @@ the prompt again.
 - **Stay in scope:** BrowserStack wiring and the fixes listed in this skill. Don't refactor app code.
 - **Never install system software** (runtimes, Rosetta, browsers, build tools). Tell the user what
   to install and stop. Project-local packages (a virtual environment, `node_modules`, Maven or
-  NuGet dependencies) are fine.
+  NuGet dependencies) are fine, and so is BrowserStack's own Local binary when the plan names the
+  download and the user approves it (see Private apps).
 - **Data:** a cloud run uploads the page URL, page content and a session video to BrowserStack.
   For a private or internal app, use BrowserStack Local and say so in your plan.
 
@@ -230,8 +231,36 @@ Note these in a short Assessment block at the top of your plan:
 - **Browser launch the SDK can't wrap:** `executable_path`, `launch_persistent_context`, or
   `connect()` to another endpoint runs on the local machine while the result still looks green.
   Propose the standard fixtures or `browser_type.launch()`.
-- **Real devices:** a real iPhone is available on request. Real Android phones aren't available
-  for Playwright Python through the SDK.
+- **Real iPhone (on request, as its own build):** keep `browserstack.yml` as it is (if there is none
+  yet, add the B2 one too and say this run uses only the iPhone file) and add a
+  `browserstack-ios.yml` with the same settings, a new `buildName` and only this platform (check
+  it against the live catalog as in step A3):
+  ```yaml
+  platforms:
+    - deviceName: iPhone 15
+      osVersion: 17
+      browserName: safari
+  ```
+  Run it with `BROWSERSTACK_CONFIG_FILE=browserstack-ios.yml .venv/bin/browserstack-sdk pytest`.
+  Real iOS allows one browser context per session, and `pytest-playwright` opens a new context
+  for every test in one shared browser, so from the second test on it fails with `Only one browser
+  context is allowed`. Put this in `conftest.py` (a new file, or a diff to the existing one) so
+  each test gets its own browser and session:
+  ```python
+  import pytest
+
+  @pytest.fixture
+  def browser(launch_browser):
+      browser = launch_browser()
+      yield browser
+      browser.close()
+  ```
+  Session names end in `[chromium]` on every platform (pytest-playwright's default parameter); the
+  API's `device` field shows what really ran.
+- **Real Android:** not available for Playwright Python through the SDK (it needs a separate
+  BrowserStack package and `playwright.android.connect`, so the tests would need rewriting). Never
+  add an Android row: the SDK still starts device sessions, which end in `error`. Point the user to
+  https://www.browserstack.com/docs/automate/playwright/playwright-android/python.
 - **Which tests to run:** the ones the user named; otherwise all. If they named a flow that has no
   test, pick the test whose name is the nearest step in that flow, and if two are equally close,
   the first by file path. State the pick and why.
@@ -297,16 +326,30 @@ covers a module's `log/` folder.
 
 **Private apps (BrowserStack Local).** Set `browserstackLocal: true` only when the tests open
 `localhost`, a private IP or a staging host, and say so in the plan (the SDK starts the tunnel
-itself). Before the run, check both of these and put any problem in the plan instead of running:
-- The app answers on this machine, for example `curl -sI http://localhost:3000 | head -1`. If it
-  doesn't, ask the user to start it.
-- On a Mac with Apple silicon, the Local binary the SDK uses may be an Intel build that needs
-  Rosetta. `[ "$(uname -m)" = arm64 ] && ! arch -x86_64 /usr/bin/true 2>/dev/null && echo "no Rosetta"`
-  prints `no Rosetta` when it would fail to start (error `-86`). Ask the user to install Rosetta
-  (`softwareupdate --install-rosetta`) themselves, then run the prompt again.
-
-If either check fails, don't ask for OK: end the plan with what the user must fix first, and
-change nothing.
+itself). Before the run, check these and put any problem in the plan:
+- The app answers on this machine at the URL the tests open, for example
+  `curl -sI http://localhost:3000/dashboard | head -1`. If it doesn't, ask the user to start it, and
+  don't ask for OK: end the plan with that and change nothing.
+- On a Mac with Apple silicon (`uname -m` prints `arm64`), the SDK starts BrowserStack's Intel Local
+  binary, which fails without Rosetta (error `-86`). Use BrowserStack's native Apple-silicon binary
+  instead. Don't move or replace the SDK's own copy in `~/.browserstack/`, and don't install Rosetta.
+  1. Check for it: `B="$HOME/.browserstack/arm64/BrowserStackLocal"; [ -x "$B" ] && "$B" --version`
+     (or ask whether the user already keeps the arm64 binary somewhere else).
+  2. If it isn't there, put this download in the plan (the official "macOS (Arm64)" link from
+     https://www.browserstack.com/docs/local-testing/releases-and-downloads):
+     ```bash
+     mkdir -p ~/.browserstack/arm64 && curl -fsSL https://local-downloads.browserstack.com/BrowserStackLocal-darwin-arm64.zip -o ~/.browserstack/arm64/bslocal.zip \
+       && unzip -o ~/.browserstack/arm64/bslocal.zip -d ~/.browserstack/arm64 && rm ~/.browserstack/arm64/bslocal.zip
+     ```
+  3. Point the SDK at it in `browserstack.yml`, with the absolute path (the SDK still starts and stops
+     the tunnel and passes the key itself):
+     ```yaml
+     browserstackLocal: true
+     browserStackLocalOptions:
+       binarypath: /Users/<user>/.browserstack/arm64/BrowserStackLocal
+     ```
+     Verified with the Java, Python, Node and .NET SDKs (Nov 2026). After the run, a `[SUCCESS]` line
+     in `log/local.log` shows the tunnel came up.
 
 ### B3. Run
 
@@ -334,17 +377,24 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
 
 - Match the build by **prefix**: the SDK appends an identifier, so `bsk-…-0930` shows up as
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
-  default 10 within minutes.
+  default 10 within minutes. If more than one build matches (a shared account), use the
+  hashed_id from the SDK's `View build on BrowserStack dashboard` line, or the build whose
+  sessions match your platforms and start time.
 - **No matching build, or 0 sessions** → the tests did not reach BrowserStack. Read the SDK's own
   logs in the `log/` folder next to `browserstack.yml` (mask the key first) before guessing; then
   see Troubleshooting. Report what stopped the run and the fix, without a dashboard link.
-- **Each session's `status`:** `passed` or `failed` means the result reached the dashboard.
+- **Each session's `status`:** `passed` or `failed` means the result reached the dashboard. Report
+  from the sessions: the build's own `status` can read `failed` while every session passed (for
+  example when a test closes Playwright without closing the browser). If the test runner reports
+  a failed test for a platform whose session shows `passed`, trust the runner: mark that session
+  `failed` with the runner's message (below) and say so in the report. The SDK has been seen
+  marking a timed-out test `passed`.
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
   - The SDK marks pytest and behave sessions. If they show `done` and have no name, the SDK
     detected the wrong framework: check `framework:` in `browserstack.yml`, then mark each session
     from the runner's result as shown below.
-  - `pytest-playwright` reuses one browser per platform, so several tests share one session, named
-    after the last test and marked with its result. Report per-test results from pytest's output;
+  - Without the B1 `conftest.py` fixture, `pytest-playwright` reuses one browser per platform, so
+    several tests share one session, named after the last test and marked with its result. Report per-test results from pytest's output;
     if a test failed while its session shows `passed`, mark the session `failed` with that test's
     name and assertion.
 - To mark a session yourself from the test runner's own result (use the assertion message as the
@@ -404,11 +454,12 @@ After the report, offer three or four of these, one line each, then wait for the
   plan limits. K = max(1, ⌊free ÷ platforms⌋), capped at 5 because other people on the team share
   the same pool; it is how many tests each platform runs at once in a full suite, so don't cap it
   at the number of tests in this run.
-- **Real iPhone:** add a real iPhone 15 (Safari) as its own build. Set expectations first:
+- **Real iPhone:** add a real iPhone 15 (Safari) as its own build (B1 has the row and how). After
+  an iPhone-only run, offer the desktop build instead. Set expectations first:
   Playwright on real iOS is a custom WebKit integration with limits (for example one browser
   context per session, and some keyboard and multi-tab behaviour differs from desktop WebKit), so
   a failure there doesn't change the desktop results. Real Android phones need BrowserStack's device API rather
-  than a normal browser launch, so this skill doesn't set them up: see the Playwright Android docs.
+  than a normal browser launch, so this skill doesn't set them up: see https://www.browserstack.com/docs/automate/playwright/playwright-android/python.
 - **Wider coverage:** add Edge, older browser versions or other operating systems.
 - **Your own app:** after the sample build, run their own Playwright Python tests; for localhost or staging,
   turn on BrowserStack Local.
@@ -419,7 +470,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | Symptom | Cause and fix |
 | --- | --- |
 | Tests pass locally but the API shows no build | The run did not go through the BrowserStack SDK. Check the run command and wiring below, and read `log/sdk-cli.log` (mask the key) |
-| Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → ask the user to install Rosetta themselves (`softwareupdate --install-rosetta`), then re-run |
+| Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → point `browserStackLocalOptions.binarypath` at BrowserStack's native Apple-silicon binary (see Private apps) and re-run |
 | `All parallel tests are currently in use` | The plan's parallel limit is reached; lower `parallelsPerPlatform` or wait |
 | `Browser/OS combination not supported` | A retired device or OS version: re-check the catalog (step A3), swap to the closest current one and re-run once |
 | Session fails to start with a connect timeout while parallels are free | Usually transient: re-run once. If it repeats, the network may block `*.browserstack.com` (allow outbound HTTPS) |
@@ -428,7 +479,8 @@ After the report, offer three or four of these, one line each, then wait for the
 | Tests run on the user's machine and the API shows no build | The user's Selenium packages in the same environment, or a custom launch: use the separate `.venv` (B2) and the standard fixtures |
 | Sessions have no name and stay `done` | The SDK detected the wrong framework: set `framework: pytest` (or `behave`) in `browserstack.yml` |
 | macOS Ventura WebKit: `LocatorAssertions.to_have_count` fails with an empty message | Seen on every Ventura WebKit run of the sample (Nov 2026): use macOS Sequoia for WebKit |
-| iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
+| iOS: `Only one browser context is allowed` from the second test on | `pytest-playwright` opens a new context per test in one shared browser: add the function-scoped `browser` fixture in `conftest.py` (B1) so each test gets its own session. Tests that open several contexts themselves can't run on real iOS |
+| Real Android: `AssertionError` at `assert pre_launched_browser`, sessions end `error` / `ABRUPT_CLOSE` | Playwright Python can't drive real Android through the SDK: remove the Android row (B1) |
 
 ## Quick reference
 

@@ -1,3 +1,6 @@
 | `agent already loaded` | The agent is attached twice: keep the surefire `argLine` or `browserstack-sdk mvn test`, not both |
-| A browser opens on the user's machine; the API shows no build | The launch wasn't routed: check the agent is on surefire's `argLine` (B2) and the test uses a standard `launch()` |
+| A browser opens on the user's machine; the API shows no build | The launch wasn't routed: check the agent is on surefire's `argLine` (Maven) or on the `browserstackTest` task (Gradle), and the test uses a standard `launch()` |
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
+| Real Android: `PlaywrightException: Cannot find parent object android@… to create android-device@…` at `launch()` | A standard `launch()` can't drive real Android, though the device session still starts (`error` / `ABRUPT_CLOSE`): remove the Android row (B1) |
+| Gradle: only one platform gets a session and the output shows `java.io.EOFException … GradleWorkerMain` | The agent is on Gradle's `test` task, where the SDK can drive one platform. Use the `browserstackTest` task from B2 |
+| Gradle 9: `Failed to load JUnit Platform … including the JUnit Platform launcher` | Gradle 9 no longer adds the launcher; it is the project's build, not BrowserStack. `browserstackTest` brings it in through `junit-platform-console`. For `gradle test` the project needs `testRuntimeOnly 'org.junit.platform:junit-platform-launcher'` (show it as a diff and ask) |

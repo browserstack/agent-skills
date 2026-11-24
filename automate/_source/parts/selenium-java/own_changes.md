@@ -28,14 +28,30 @@
        </configuration>
      </plugin>
      ```
-   - **Gradle:**
+   - **Gradle (JUnit 5):** don't put the agent on the `test` task: inside Gradle's test worker the
+     SDK can run only one platform, and the others stop with `java.io.EOFException … GradleWorkerMain`.
+     Add a separate task that runs the same tests through the JUnit console launcher in a plain JVM,
+     and leave the `test` task as it is:
      ```groovy
-     dependencies { testImplementation 'com.browserstack:browserstack-java-sdk:CURRENT_RELEASE' }
-     test {
-       useJUnitPlatform()
+     dependencies {
+       testImplementation 'com.browserstack:browserstack-java-sdk:CURRENT_RELEASE'
+       testRuntimeOnly 'org.junit.platform:junit-platform-console'   // version comes from the JUnit BOM
+     }
+     // Runs the JUnit 5 tests on every platform in browserstack.yml: gradle browserstackTest
+     tasks.register('browserstackTest', JavaExec) {
+       dependsOn 'testClasses'
+       classpath = sourceSets.test.runtimeClasspath
+       mainClass = 'org.junit.platform.console.ConsoleLauncher'
+       args 'execute', '--scan-classpath', '--include-classname', '.*', '--disable-banner', '--details=tree'
        doFirst { jvmArgs "-javaagent:${classpath.find { it.name.contains('browserstack-java-sdk') }.absolutePath}" }
      }
      ```
+     `execute` needs JUnit 5.10 or newer; on an older JUnit 5, leave it out. For one class, replace
+     `'--scan-classpath', '--include-classname', '.*'` with `'--select-class', 'com.example.LoginTest'`.
+     Don't add BrowserStack's `com.browserstack.gradle-sdk` plugin: with the current SDK no session
+     starts. Verified with the Groovy DSL on Gradle 9.9.2 (Nov 2026); for `build.gradle.kts`, write
+     the same task in Kotlin and say it is unverified. Gradle with TestNG or JUnit 4 has no tested
+     recipe yet: say so and stop.
    - **No test framework (a plain `main()` run by `exec-maven-plugin`):** put the agent on the forked
      JVM instead of surefire (`<executable>java</executable>`, `<classpathScope>test</classpathScope>`,
      arguments `-javaagent:${com.browserstack:browserstack-java-sdk:jar}`, `-classpath`, `<classpath/>`,
@@ -49,7 +65,8 @@
    `new WebDriverWait(driver, Duration.ofSeconds(20))`; `TimeUnit` timeouts → the `Duration`
    versions; `findElementById("x")` → `findElement(By.id("x"))`; `DesiredCapabilities.chrome()` →
    `new ChromeOptions()`.
-4. **Pass/fail on the dashboard for plain JUnit 5.** The SDK leaves plain JUnit 5 sessions `done`
+4. **Pass/fail on the dashboard for plain JUnit 5** (Maven and the Gradle task alike). The SDK
+   leaves plain JUnit 5 sessions `done`
    (grey, no name), so add this to each test class that will run, or once in a shared base class
    (Java 8 compatible; imports: `org.junit.jupiter.api.extension.AfterTestExecutionCallback`,
    `org.junit.jupiter.api.extension.RegisterExtension`, `org.openqa.selenium.JavascriptExecutor`):

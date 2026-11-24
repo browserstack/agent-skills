@@ -3,4 +3,5 @@
 | Tests run on the user's machine and the API shows no build | The user's Selenium packages in the same environment, or a custom launch: use the separate `.venv` (B2) and the standard fixtures |
 | Sessions have no name and stay `done` | The SDK detected the wrong framework: set `framework: pytest` (or `behave`) in `browserstack.yml` |
 | macOS Ventura WebKit: `LocatorAssertions.to_have_count` fails with an empty message | Seen on every Ventura WebKit run of the sample (Nov 2026): use macOS Sequoia for WebKit |
-| iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
+| iOS: `Only one browser context is allowed` from the second test on | `pytest-playwright` opens a new context per test in one shared browser: add the function-scoped `browser` fixture in `conftest.py` (B1) so each test gets its own session. Tests that open several contexts themselves can't run on real iOS |
+| Real Android: `AssertionError` at `assert pre_launched_browser`, sessions end `error` / `ABRUPT_CLOSE` | Playwright Python can't drive real Android through the SDK: remove the Android row (B1) |

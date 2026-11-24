@@ -91,7 +91,8 @@ the prompt again.
 - **Stay in scope:** BrowserStack wiring and the fixes listed in this skill. Don't refactor app code.
 - **Never install system software** (runtimes, Rosetta, browsers, build tools). Tell the user what
   to install and stop. Project-local packages (a virtual environment, `node_modules`, Maven or
-  NuGet dependencies) are fine.
+  NuGet dependencies) are fine, and so is BrowserStack's own Local binary when the plan names the
+  download and the user approves it (see Private apps).
 - **Data:** a cloud run uploads the page URL, page content and a session video to BrowserStack.
   For a private or internal app, use BrowserStack Local and say so in your plan.
 
@@ -286,16 +287,30 @@ covers a module's `log/` folder.
 
 **Private apps (BrowserStack Local).** Set `browserstackLocal: true` only when the tests open
 `localhost`, a private IP or a staging host, and say so in the plan (the SDK starts the tunnel
-itself). Before the run, check both of these and put any problem in the plan instead of running:
-- The app answers on this machine, for example `curl -sI http://localhost:3000 | head -1`. If it
-  doesn't, ask the user to start it.
-- On a Mac with Apple silicon, the Local binary the SDK uses may be an Intel build that needs
-  Rosetta. `[ "$(uname -m)" = arm64 ] && ! arch -x86_64 /usr/bin/true 2>/dev/null && echo "no Rosetta"`
-  prints `no Rosetta` when it would fail to start (error `-86`). Ask the user to install Rosetta
-  (`softwareupdate --install-rosetta`) themselves, then run the prompt again.
-
-If either check fails, don't ask for OK: end the plan with what the user must fix first, and
-change nothing.
+itself). Before the run, check these and put any problem in the plan:
+- The app answers on this machine at the URL the tests open, for example
+  `curl -sI http://localhost:3000/dashboard | head -1`. If it doesn't, ask the user to start it, and
+  don't ask for OK: end the plan with that and change nothing.
+- On a Mac with Apple silicon (`uname -m` prints `arm64`), the SDK starts BrowserStack's Intel Local
+  binary, which fails without Rosetta (error `-86`). Use BrowserStack's native Apple-silicon binary
+  instead. Don't move or replace the SDK's own copy in `~/.browserstack/`, and don't install Rosetta.
+  1. Check for it: `B="$HOME/.browserstack/arm64/BrowserStackLocal"; [ -x "$B" ] && "$B" --version`
+     (or ask whether the user already keeps the arm64 binary somewhere else).
+  2. If it isn't there, put this download in the plan (the official "macOS (Arm64)" link from
+     https://www.browserstack.com/docs/local-testing/releases-and-downloads):
+     ```bash
+     mkdir -p ~/.browserstack/arm64 && curl -fsSL https://local-downloads.browserstack.com/BrowserStackLocal-darwin-arm64.zip -o ~/.browserstack/arm64/bslocal.zip \
+       && unzip -o ~/.browserstack/arm64/bslocal.zip -d ~/.browserstack/arm64 && rm ~/.browserstack/arm64/bslocal.zip
+     ```
+  3. Point the SDK at it in `browserstack.yml`, with the absolute path (the SDK still starts and stops
+     the tunnel and passes the key itself):
+     ```yaml
+     browserstackLocal: true
+     browserStackLocalOptions:
+       binarypath: /Users/<user>/.browserstack/arm64/BrowserStackLocal
+     ```
+     Verified with the Java, Python, Node and .NET SDKs (Nov 2026). After the run, a `[SUCCESS]` line
+     in `log/local.log` shows the tunnel came up.
 
 ### B3. Run
 
@@ -325,11 +340,18 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
 
 - Match the build by **prefix**: the SDK appends an identifier, so `bsk-…-0930` shows up as
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
-  default 10 within minutes.
+  default 10 within minutes. If more than one build matches (a shared account), use the
+  hashed_id from the SDK's `View build on BrowserStack dashboard` line, or the build whose
+  sessions match your platforms and start time.
 - **No matching build, or 0 sessions** → the tests did not reach BrowserStack. Read the SDK's own
   logs in the `log/` folder next to `browserstack.yml` (mask the key first) before guessing; then
   see Troubleshooting. Report what stopped the run and the fix, without a dashboard link.
-- **Each session's `status`:** `passed` or `failed` means the result reached the dashboard.
+- **Each session's `status`:** `passed` or `failed` means the result reached the dashboard. Report
+  from the sessions: the build's own `status` can read `failed` while every session passed (for
+  example when a test closes Playwright without closing the browser). If the test runner reports
+  a failed test for a platform whose session shows `passed`, trust the runner: mark that session
+  `failed` with the runner's message (below) and say so in the report. The SDK has been seen
+  marking a timed-out test `passed`.
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
   - Mocha sessions are marked and named by the SDK. If a Jest run's sessions show `done`, mark
     them from the runner's result as shown below.
@@ -401,7 +423,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | Symptom | Cause and fix |
 | --- | --- |
 | Tests pass locally but the API shows no build | The run did not go through the BrowserStack SDK. Check the run command and wiring below, and read `log/sdk-cli.log` (mask the key) |
-| Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → ask the user to install Rosetta themselves (`softwareupdate --install-rosetta`), then re-run |
+| Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → point `browserStackLocalOptions.binarypath` at BrowserStack's native Apple-silicon binary (see Private apps) and re-run |
 | `All parallel tests are currently in use` | The plan's parallel limit is reached; lower `parallelsPerPlatform` or wait |
 | `Browser/OS combination not supported` | A retired device or OS version: re-check the catalog (step A3), swap to the closest current one and re-run once |
 | Session fails to start with a connect timeout while parallels are free | Usually transient: re-run once. If it repeats, the network may block `*.browserstack.com` (allow outbound HTTPS) |

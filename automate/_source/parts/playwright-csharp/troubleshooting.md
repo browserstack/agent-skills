@@ -4,3 +4,4 @@
 | `Executable doesn't exist … playwright.ps1 install` | The launch wasn't routed: check `BrowserStack.TestAdapter` is in the `.csproj` and run `dotnet build` before `dotnet test`. After a failed build, delete `bin/` and `obj/` first: the SDK otherwise reuses the patch from the failed build and the browsers launch locally |
 | Test host crashed with `JsonReaderException … AtomicFile`, or the output shows another project's tests | Another .NET SDK run is active on this machine (they share `$TMPDIR/.browserstack/`, which also holds a copy of the credentials): run one at a time, and trust the API |
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
+| Real Android: every test fails with `KeyNotFoundException: The given key 'AndroidDevice' was not present in the dictionary`; sessions stay `done` with no name | Desktop-style tests can't drive real Android: remove the Android row (B1) |
