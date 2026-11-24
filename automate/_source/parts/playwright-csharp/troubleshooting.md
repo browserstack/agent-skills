@@ -1,0 +1,5 @@
+| `dotnet test` finishes with 0 tests run, or runs locally | An outdated `BrowserStack.TestAdapter`: update it to the current release (B2, step 1) |
+| `You must install or update .NET to run this application` | The target framework's runtime isn't installed: prefix `DOTNET_ROLL_FORWARD=Major`, or use `-f <installed version>` |
+| `Executable doesn't exist … playwright.ps1 install` | The launch wasn't routed: check `BrowserStack.TestAdapter` is in the `.csproj` and run `dotnet build` before `dotnet test` |
+| Test host crashed with `JsonReaderException … AtomicFile`, or the output shows another project's tests | Another .NET SDK run is active on this machine (they share `$TMPDIR/.browserstack/`, which also holds a copy of the credentials): run one at a time, and trust the API |
+| iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |

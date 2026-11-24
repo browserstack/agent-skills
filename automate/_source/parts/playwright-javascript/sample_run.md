@@ -4,6 +4,7 @@ npm run sample-test
 ```
 
 `npm run sample-test` runs `npx browserstack-node-sdk playwright test --config=./playwright.config.js`:
-the SDK runs the sample spec (checkboxes and a dropdown on the-internet.herokuapp.com) on every
-platform in `browserstack.yml` (desktop Chrome, WebKit and Firefox), in parallel, and reports
-pass/fail to BrowserStack.
+the SDK runs the sample spec (pages on the-internet.herokuapp.com) on every platform in
+`browserstack.yml` (desktop Chrome, WebKit and Firefox), in parallel, and reports pass/fail to
+BrowserStack. `npm install` also updates the tracked `package-lock.json`, and its `postinstall`
+step updates the SDK to the latest version: list both in the plan.

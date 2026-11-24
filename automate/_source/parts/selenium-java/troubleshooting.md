@@ -3,4 +3,5 @@
 | `agent already loaded` | The agent is attached twice: keep the surefire `argLine` or `browserstack-sdk mvn test`, not both |
 | A browser opens on the user's machine; the API shows no build | A driver-manager factory, or an SDK too old for the Selenium version: use `new ChromeDriver()` and the current SDK |
 | `pattern matching in instanceof is not supported in -source 8` | Use the Java 8 form of the callback shown in B2, step 4 |
+| Sample build: every platform fails with `NoSuchElementException` on `//*[@id="1"]/p` | The sample reads the product list before bstackdemo.com has rendered it (no wait). It is the sample, not your setup: report it as in "When sessions failed" |
 | JaCoCo prints `Unsupported class file major version` | JaCoCo is older than the JDK Maven runs on; harmless when the API shows the sessions passed |

@@ -16,6 +16,7 @@
      <plugin>
        <groupId>org.apache.maven.plugins</groupId>
        <artifactId>maven-dependency-plugin</artifactId>
+       <version>3.8.1</version>
        <executions><execution><id>getClasspathFilenames</id><goals><goal>properties</goal></goals></execution></executions>
      </plugin>
      <plugin>
@@ -60,7 +61,7 @@
        JavascriptExecutor js = (JavascriptExecutor) driver;
        String reason = ctx.getExecutionException().map(Throwable::getMessage).orElse("");
        js.executeScript("browserstack_executor: {\"action\":\"setSessionName\",\"arguments\":{\"name\":\""
-               + jsonSafe(ctx.getDisplayName()) + "\"}}");
+               + jsonSafe(ctx.getRequiredTestClass().getSimpleName() + "." + ctx.getRequiredTestMethod().getName()) + "\"}}");
        js.executeScript("browserstack_executor: {\"action\":\"setSessionStatus\",\"arguments\":{\"status\":\""
                + (ctx.getExecutionException().isPresent() ? "failed" : "passed")
                + "\",\"reason\":\"" + jsonSafe(reason) + "\"}}");
@@ -72,8 +73,24 @@
        return s.length() > 250 ? s.substring(0, 250) : s;
    }
    ```
-   Declare it after the `driver` field. For a framework-less `main()`, call the same two executor
-   commands in a `finally` block before `driver.quit()`. If the user declines code edits, run
+   Declare it after the `driver` field. For a framework-less `main()`, track the outcome and send
+   the status before `driver.quit()` (uses the `jsonSafe` helper above):
+   ```java
+   boolean ok = false; String reason = "";
+   try {
+       // ... the existing steps ...
+       ok = true;
+   } catch (Exception | AssertionError e) {
+       reason = String.valueOf(e.getMessage());
+       throw e;
+   } finally {
+       try {
+           ((JavascriptExecutor) driver).executeScript("browserstack_executor: {\"action\":\"setSessionStatus\",\"arguments\":{\"status\":\""
+                   + (ok ? "passed" : "failed") + "\",\"reason\":\"" + jsonSafe(reason) + "\"}}");
+       } catch (Exception ignored) { }
+       driver.quit();
+   }
+   ``` If the user declines code edits, run
    anyway and mark the sessions from the runner's result instead (see Confirm the run).
 5. **`maximize()` on real phones** (only if the plan includes phones): wrap it so it runs on desktop only:
    ```java

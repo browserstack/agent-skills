@@ -1,3 +1,5 @@
+Build first: the SDK hooks into the test assembly at build time.
+
 ```bash
 dotnet build <path/to/Tests.csproj>
 dotnet test <path/to/Tests.csproj>          # add --filter "FullyQualifiedName~Login" for a subset

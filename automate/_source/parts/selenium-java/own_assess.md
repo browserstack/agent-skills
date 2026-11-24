@@ -1,7 +1,8 @@
 Note these in a short Assessment block at the top of your plan:
 
 - **Build tool:** `pom.xml` → Maven; `build.gradle` / `build.gradle.kts` → Gradle (use `./gradlew`
-  if the repo has it). In a multi-module repo, pick the module that has the Selenium tests, wire
+  if the repo has it). A Gradle project needs Gradle (the wrapper or `gradle`) on this machine:
+  if neither works, say what to install and stop. Never convert the build to Maven. In a multi-module repo, pick the module that has the Selenium tests, wire
   only that module, and run it from the root with `mvn -pl <module> test`.
 - **Test framework:** JUnit 5 (`org.junit.jupiter`), JUnit 4, TestNG, Cucumber, or none (a plain
   `main()` run by `exec-maven-plugin`).
@@ -11,6 +12,8 @@ Note these in a short Assessment block at the top of your plan:
   SDK, so leave them alone. A driver-manager factory that builds the driver itself
   (`WebDriverManager.chromedriver().create()`) is not intercepted and runs on the local machine:
   propose `new ChromeDriver()` instead (`.setup()` followed by `new ChromeDriver()` is fine).
+- **Existing BrowserStack wiring:** an SDK at `LATEST` or an old version, an agent already on
+  `argLine`, or a `browserstack.yml`: update these in place (B2) instead of adding second copies.
 - **Existing surefire `<argLine>`** (for example JaCoCo): the agent must be appended, not replace it.
 - **`maximize()` calls:** real Android phones reject them, so they matter only if the plan includes phones.
 - **Which tests to run:** the ones the user named; otherwise all. If they named a flow that has no

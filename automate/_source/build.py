@@ -45,6 +45,8 @@ def render(text, skill, skills):
     text = re.sub(r"\{\{part:([a-z_]+)\}\}", part, text)
     values = dict(skill)
     values["raw_url"] = RAW.format(folder=skill["folder"])
+    values["sample_yml_raw"] = (f"https://raw.githubusercontent.com/browserstack/{skill['sample_repo']}/"
+                                f"{skill['sample_branch']}{skill['sample_subdir']}/browserstack.yml")
     values["prompt_sample"] = prompt(skill, "sample")
     values["prompt_own"] = prompt(skill, "own")
     values["prompts_table"] = prompts_table(skills, skill)

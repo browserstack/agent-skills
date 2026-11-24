@@ -26,34 +26,17 @@ You are a senior QA automation engineer with access to the user's shell and file
 yourself (clone, install, edit, run) instead of handing commands to the user, but only after the
 user approves your plan.
 
-## Step 0: Install this skill (do this first, once)
+## Step 1: Is this the right skill? (before anything else)
 
-Skip this step if `browserstack-automate-selenium-java/SKILL.md` already exists in your skills folder (for example
-`.claude/skills/`, `.cursor/skills/`, `.github/skills/` or `.agents/skills/`; use the
-project-level folder your agent uses).
-
-1. Create the folder `browserstack-automate-selenium-java` in your skills folder.
-2. Download this file into it as `SKILL.md`:
-   ```bash
-   mkdir -p "<skills-folder>/browserstack-automate-selenium-java" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-java/SKILL.md -o "<skills-folder>/browserstack-automate-selenium-java/SKILL.md"
-   ```
-   Replace `<skills-folder>` with your agent's project-level skills folder. The skill stays
-   installed for future sessions.
-3. Tell the user in one line that the skill is installed, then continue in this session. Do not
-   ask them to restart.
-
-To update the skill later, delete the folder and run the prompt again. If the network or the
-skills folder is unavailable, say so in one line and carry on using this file for this session
-only. Installing is a convenience; never block the run on it.
-
-## Is this the right skill? (check before anything else)
-
-Look at the folder the user is in (read-only). This skill is for **Selenium Java**: `pom.xml` or `build.gradle` that depends on `selenium-java`.
+Look at the folder the user is in and its subfolders (read-only). This skill is for
+**Selenium Java**: `pom.xml` or `build.gradle` that depends on `selenium-java`.
 
 - Empty folder, or the user asked for the sample build → right skill, continue.
 - A Selenium Java project → right skill, continue.
-- A project in another language or framework → stop. Tell the user in one line what you found and
-  that this skill is for Selenium Java, then give them the prompt for the right skill:
+- A project in another language or framework → stop without changing anything. If you already
+  saved this skill into the project's skills folder, remove that folder again. Tell the user in one
+  line what you found and that this skill is for Selenium Java, then give them the prompt for the right
+  skill:
 
   - **Selenium Python** (`requirements.txt`, `pyproject.toml` or `.py` tests that import `selenium`):
     `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-python/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-selenium-python/SKILL.md, then follow that skill to run my own Selenium Python tests on BrowserStack Automate.`
@@ -63,23 +46,52 @@ Look at the folder the user is in (read-only). This skill is for **Selenium Java
     `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-csharp/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-selenium-csharp/SKILL.md, then follow that skill to run my own Selenium C# tests on BrowserStack Automate.`
   - **Playwright JavaScript** (`package.json` that depends on `@playwright/test` (JavaScript or TypeScript)):
     `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-javascript/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-playwright-javascript/SKILL.md, then follow that skill to run my own Playwright JavaScript tests on BrowserStack Automate.`
+  - **Playwright Python** (`requirements.txt` or `pyproject.toml` with `playwright` or `pytest-playwright`, or `.py` tests that import `playwright`):
+    `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-python/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-playwright-python/SKILL.md, then follow that skill to run my own Playwright Python tests on BrowserStack Automate.`
+  - **Playwright Java** (`pom.xml` or `build.gradle` that depends on `com.microsoft.playwright`):
+    `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-java/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-playwright-java/SKILL.md, then follow that skill to run my own Playwright Java tests on BrowserStack Automate.`
+  - **Playwright C#** (a `.csproj` that references `Microsoft.Playwright` (NUnit, MSTest or xUnit)):
+    `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-csharp/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-playwright-csharp/SKILL.md, then follow that skill to run my own Playwright C# tests on BrowserStack Automate.`
 
-  For anything else (Ruby, PHP, WebdriverIO, Nightwatch, Cypress, Playwright with Python, Java
-  or C#) there is no skill yet: point the user to https://www.browserstack.com/docs/automate and stop.
+  For anything else (Ruby, PHP, WebdriverIO, Nightwatch or Cypress) there is no skill yet: point
+  the user to https://www.browserstack.com/docs/automate and stop.
 - A mixed project (for example Java and Python tests): work only on the Selenium Java part, and name the
   skill that covers the rest.
+
+## Step 2: Install this skill (once)
+
+Skip this step if `browserstack-automate-selenium-java/SKILL.md` already exists in your skills folder (for example
+`.claude/skills/`, `.cursor/skills/`, `.github/skills/` or `.agents/skills/`; use the
+project-level folder your agent uses).
+
+1. Create the folder `browserstack-automate-selenium-java` in your skills folder and download this file into it as `SKILL.md`:
+   ```bash
+   mkdir -p "<skills-folder>/browserstack-automate-selenium-java" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-java/SKILL.md -o "<skills-folder>/browserstack-automate-selenium-java/SKILL.md" || rmdir "<skills-folder>/browserstack-automate-selenium-java"
+   ```
+   Replace `<skills-folder>` with your agent's project-level skills folder. The skill stays
+   installed for future sessions.
+2. Tell the user in one line that the skill is installed, then continue in this session. Do not
+   ask them to restart.
+
+If the download fails for any reason (no network, an HTTP error such as 404, or no writable
+skills folder), say so in one line and carry on using this file for this session only. Installing
+is a convenience; never block the run on it. To update the skill later, delete the folder and run
+the prompt again.
 
 ## Ground rules
 
 - **Credentials come from `$BROWSERSTACK_USERNAME` and `$BROWSERSTACK_ACCESS_KEY` only.** Never ask
   the user to paste the access key into the chat, never print it, never write it into a file.
 - **The SDK itself can write the key to disk.** It has been seen in `log/sdk-cli-debug.log` inside
-  the project, so any project you wire for BrowserStack must list `log/` in `.gitignore`. Before you
+  the project, so any project you run on BrowserStack must list `log/` in `.gitignore`. Before you
   quote any SDK output or log, mask the key: `sed "s/$BROWSERSTACK_ACCESS_KEY/<ACCESS_KEY>/g"`.
 - **Never write a test yourself.** The sample build uses BrowserStack's official sample repo; the
   other path runs the user's own tests.
 - **Never commit, push or open a pull request.** Leave changes in the working tree for the user.
 - **Stay in scope:** BrowserStack wiring and the fixes listed in this skill. Don't refactor app code.
+- **Never install system software** (runtimes, Rosetta, browsers, build tools). Tell the user what
+  to install and stop. Project-local packages (a virtual environment, `node_modules`, Maven or
+  NuGet dependencies) are fine.
 - **Data:** a cloud run uploads the page URL, page content and a session video to BrowserStack.
   For a private or internal app, use BrowserStack Local and say so in your plan.
 
@@ -89,11 +101,10 @@ Look at the folder the user is in (read-only). This skill is for **Selenium Java
    ```bash
    [ -n "$BROWSERSTACK_USERNAME" ] && [ -n "$BROWSERSTACK_ACCESS_KEY" ] && echo "credentials set" || echo "credentials missing"
    ```
-   If they are missing, ask the user to export both variables in their shell and run the prompt
-   again, then stop.
+   If they are missing, ask the user to export both variables in their shell (both are on
+   https://www.browserstack.com/accounts/settings) and run the prompt again, then stop.
 2. **Read-only checks (no approval needed):**
-   - Toolchain: `java -version` (11+), `mvn -version` (or `./gradlew -v` / `gradle -v`), `git --version`. If something is missing, say what to install and stop. Never
-     install system tools yourself.
+   - Toolchain: `java -version` (11+), the project's build tool (`mvn -version` for Maven; `./gradlew -v` or `gradle -v` for Gradle), `git --version`. If something is missing, say what to install and stop.
    - Free parallel sessions:
      ```bash
      curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" https://api.browserstack.com/automate/plan.json
@@ -101,14 +112,22 @@ Look at the folder the user is in (read-only). This skill is for **Selenium Java
      Free = the smaller of `parallel_sessions_max_allowed` and `team_parallel_sessions_max_allowed`,
      minus `parallel_sessions_running`. If it is lower than the number of platforms, trim the plan or
      say the run will queue.
+   - For the sample build: read the platforms it ships with, without cloning yet, and check any real
+     devices against the live catalog (step A3):
+     ```bash
+     curl -fsSL https://raw.githubusercontent.com/browserstack/vanilla-java-browserstack/sdk-sample/browserstack.yml
+     ```
    - For your own tests: the project assessment in Path B, step B1.
 3. **Ask only what you still need, in one message.** The sample build usually needs nothing. For
    your own tests, ask only if it is unclear which tests to run.
 4. **Show a short plan and wait for the user's OK.** List what you will clone, install or create,
-   every existing file you will change (with the diff), the browsers and devices with the session
-   count, the folder you will work in, and the command you will run. In the same message, invite
-   changes: "Reply OK to start, or tell me which browsers or devices to change."
-5. **After approval, run end to end** without asking again at each step, then report once.
+   every existing file you will change (with the diff) and any file the install itself updates,
+   the browsers and devices with the session count, the folder you will work in, and the command
+   you will run. In the same message, invite changes: "Reply OK to start, or tell me which
+   browsers or devices to change."
+5. **After approval, run end to end** without asking again at each step, then report once. If the
+   user asked you to set things up without running, stop after the changes, give them the run
+   command and the build name it will use, and don't run anything.
 
 ## Which path?
 
@@ -142,23 +161,24 @@ Never overwrite a folder the user may have changed.
 
 ### A3. Point `browserstack.yml` at this run
 
-Change only these, and leave everything else as BrowserStack ships it:
+Change only these two lines of `browserstack.yml`, and leave the rest as BrowserStack ships it:
 
 ```bash
 BUILD_NAME="bsk-automate-selenium-java-sample-$(date +%Y%m%d-%H%M%S)"
 sed -i.bak -e "s/^buildName:.*/buildName: ${BUILD_NAME}/" \
            -e "s/^browserstackLocal:.*/browserstackLocal: false/" browserstack.yml && rm -f browserstack.yml.bak
+grep -qxF 'log/' .gitignore 2>/dev/null || echo 'log/' >> .gitignore
 ```
 
 - **`buildName`** gets a unique name, so the API check below finds exactly this run. Keep the
   `bsk-` prefix: it marks builds started by a skill.
 - **`browserstackLocal: false`**: the sample tests a public site, and the Local tunnel is only
   needed for private apps (its binary can also fail to start, which drops every session).
+- **`log/` in `.gitignore`**: the SDK writes its logs there, sometimes with the access key.
 - **Credentials:** leave the `userName`/`accessKey` placeholders alone. The environment variables
   take precedence. Never write real credentials into the file.
-- **Real devices** in the file can be retired over time. If it lists any, check them against the
-  live catalog and swap a stale one for the closest current device (same OS family), noting it in
-  your report:
+- **Real devices** in the file can be retired over time. You checked them before the plan; if one
+  was stale, swap it for the closest current device (same OS family) as your plan said:
   ```bash
   curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" https://api.browserstack.com/automate/browsers.json \
     | python3 -c "import sys,json; d=json.load(sys.stdin); print(sorted({(b['device'],b['os_version']) for b in d if b.get('device')}))"
@@ -172,8 +192,9 @@ mvn test
 
 The sample's `pom.xml` attaches the BrowserStack Java SDK as a `-javaagent` and runs
 `BStackDemoTest` (adds a product to the cart on bstackdemo.com and checks it is there) on every
-platform in `browserstack.yml`, in parallel. Don't add `-q`: keep the full output. Warnings about
-the deprecated `LATEST` SDK version, SeleniumManager driver versions or CDP versions are harmless.
+platform in `browserstack.yml`, in parallel. Don't add `-q`; if the output is long, read the
+`BUILD` lines and `log/browserstack-javaagent.log`. Warnings about the deprecated `LATEST` SDK
+version, SeleniumManager driver versions or CDP versions are harmless.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -186,7 +207,8 @@ Run the user's existing Selenium Java tests on BrowserStack with no changes to t
 Note these in a short Assessment block at the top of your plan:
 
 - **Build tool:** `pom.xml` → Maven; `build.gradle` / `build.gradle.kts` → Gradle (use `./gradlew`
-  if the repo has it). In a multi-module repo, pick the module that has the Selenium tests, wire
+  if the repo has it). A Gradle project needs Gradle (the wrapper or `gradle`) on this machine:
+  if neither works, say what to install and stop. Never convert the build to Maven. In a multi-module repo, pick the module that has the Selenium tests, wire
   only that module, and run it from the root with `mvn -pl <module> test`.
 - **Test framework:** JUnit 5 (`org.junit.jupiter`), JUnit 4, TestNG, Cucumber, or none (a plain
   `main()` run by `exec-maven-plugin`).
@@ -196,6 +218,8 @@ Note these in a short Assessment block at the top of your plan:
   SDK, so leave them alone. A driver-manager factory that builds the driver itself
   (`WebDriverManager.chromedriver().create()`) is not intercepted and runs on the local machine:
   propose `new ChromeDriver()` instead (`.setup()` followed by `new ChromeDriver()` is fine).
+- **Existing BrowserStack wiring:** an SDK at `LATEST` or an old version, an agent already on
+  `argLine`, or a `browserstack.yml`: update these in place (B2) instead of adding second copies.
 - **Existing surefire `<argLine>`** (for example JaCoCo): the agent must be appended, not replace it.
 - **`maximize()` calls:** real Android phones reject them, so they matter only if the plan includes phones.
 - **Which tests to run:** the ones the user named; otherwise all. If they named a flow that has no
@@ -222,6 +246,7 @@ Note these in a short Assessment block at the top of your plan:
      <plugin>
        <groupId>org.apache.maven.plugins</groupId>
        <artifactId>maven-dependency-plugin</artifactId>
+       <version>3.8.1</version>
        <executions><execution><id>getClasspathFilenames</id><goals><goal>properties</goal></goals></execution></executions>
      </plugin>
      <plugin>
@@ -266,7 +291,7 @@ Note these in a short Assessment block at the top of your plan:
        JavascriptExecutor js = (JavascriptExecutor) driver;
        String reason = ctx.getExecutionException().map(Throwable::getMessage).orElse("");
        js.executeScript("browserstack_executor: {\"action\":\"setSessionName\",\"arguments\":{\"name\":\""
-               + jsonSafe(ctx.getDisplayName()) + "\"}}");
+               + jsonSafe(ctx.getRequiredTestClass().getSimpleName() + "." + ctx.getRequiredTestMethod().getName()) + "\"}}");
        js.executeScript("browserstack_executor: {\"action\":\"setSessionStatus\",\"arguments\":{\"status\":\""
                + (ctx.getExecutionException().isPresent() ? "failed" : "passed")
                + "\",\"reason\":\"" + jsonSafe(reason) + "\"}}");
@@ -278,8 +303,24 @@ Note these in a short Assessment block at the top of your plan:
        return s.length() > 250 ? s.substring(0, 250) : s;
    }
    ```
-   Declare it after the `driver` field. For a framework-less `main()`, call the same two executor
-   commands in a `finally` block before `driver.quit()`. If the user declines code edits, run
+   Declare it after the `driver` field. For a framework-less `main()`, track the outcome and send
+   the status before `driver.quit()` (uses the `jsonSafe` helper above):
+   ```java
+   boolean ok = false; String reason = "";
+   try {
+       // ... the existing steps ...
+       ok = true;
+   } catch (Exception | AssertionError e) {
+       reason = String.valueOf(e.getMessage());
+       throw e;
+   } finally {
+       try {
+           ((JavascriptExecutor) driver).executeScript("browserstack_executor: {\"action\":\"setSessionStatus\",\"arguments\":{\"status\":\""
+                   + (ok ? "passed" : "failed") + "\",\"reason\":\"" + jsonSafe(reason) + "\"}}");
+       } catch (Exception ignored) { }
+       driver.quit();
+   }
+   ``` If the user declines code edits, run
    anyway and mark the sessions from the runner's result instead (see Confirm the run).
 5. **`maximize()` on real phones** (only if the plan includes phones): wrap it so it runs on desktop only:
    ```java
@@ -287,8 +328,11 @@ Note these in a short Assessment block at the top of your plan:
    if (p == null || !(p.is(org.openqa.selenium.Platform.ANDROID) || p.is(org.openqa.selenium.Platform.IOS))) driver.manage().window().maximize();
    ```
 
-Add a `browserstack.yml` next to the project's build file (a new file, so no diff needed). By
-default it runs on Windows 11 Chrome, macOS Sequoia Safari, a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari); the user can change this when approving the plan:
+Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
+multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
+(a `browserstack.yml`, an SDK dependency, an SDK agent), update it in place and show the diff
+instead of adding a second copy. By default the file runs on Windows 11 Chrome, macOS Sequoia Safari, a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari); the user
+can change this when approving the plan:
 
 ```yaml
 # userName and accessKey are read from BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY
@@ -318,11 +362,19 @@ consoleLogs: info
 # testObservability: true   # only for TestNG, Cucumber-TestNG or Serenity; it does nothing for plain JUnit 5
 ```
 
-Check the real-device rows against the live catalog as in step A3, and set `browserstackLocal: true`
-only when the tests open `localhost`, a private IP or a staging host (say so in the plan; the SDK
-starts the tunnel itself).
+Check the real-device rows against the live catalog as in step A3. Add `log/` to the project's
+`.gitignore` (create the file if needed) in the same diff, as a plain `log/` line so it also
+covers a module's `log/` folder.
 
-Add `log/` to the project's `.gitignore` (create the file if needed) in the same diff.
+**Private apps (BrowserStack Local).** Set `browserstackLocal: true` only when the tests open
+`localhost`, a private IP or a staging host, and say so in the plan (the SDK starts the tunnel
+itself). Before the run, check both of these and put any problem in the plan instead of running:
+- The app answers on this machine, for example `curl -sI http://localhost:3000 | head -1`. If it
+  doesn't, ask the user to start it.
+- On a Mac with Apple silicon, the Local binary the SDK uses may be an Intel build that needs
+  Rosetta. `[ "$(uname -m)" = arm64 ] && ! arch -x86_64 /usr/bin/true 2>/dev/null && echo "no Rosetta"`
+  prints `no Rosetta` when it would fail to start (error `-86`). Ask the user to install Rosetta
+  (`softwareupdate --install-rosetta`) themselves, then run the prompt again.
 
 ### B3. Run
 
@@ -330,9 +382,10 @@ Add `log/` to the project's `.gitignore` (create the file if needed) in the same
 - **Gradle:** `./gradlew test` (or `gradle test`).
 - **Plain `main()`:** `mvn test-compile exec:exec`.
 
-Don't add `-q`. These lines also appear on genuine BrowserStack runs and are harmless:
+Don't add `-q`. If the output is long, save it to a file and read the `Tests run:`, `BUILD` and
+`View build` lines. These lines also appear on genuine BrowserStack runs and are harmless:
 `[ERROR] Surefire is going to kill self fork JVM` (adds about 30 s), SeleniumManager "chromedriver
-version … detected in PATH", `Unable to find CDP implementation`, and "Set testReporting: true".
+version … detected in PATH", `Unable to find CDP implementation`, `Unable to connect to determine websocket url … localhost:9222`, and "Set testReporting: true".
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -350,15 +403,18 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
 ```
 
 - Match the build by **prefix**: the SDK appends an identifier, so `bsk-…-0930` shows up as
-  `bsk-…-0930  1`. Ask for `limit=100`, since a busy account fills the default 10 within minutes.
+  `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
+  default 10 within minutes.
 - **No matching build, or 0 sessions** → the tests did not reach BrowserStack. Read the SDK's own
-  logs in the project's `log/` folder (mask the key first) before guessing; then see Troubleshooting.
+  logs in the `log/` folder next to `browserstack.yml` (mask the key first) before guessing; then
+  see Troubleshooting. Report what stopped the run and the fix, without a dashboard link.
 - **Each session's `status`:** `passed` or `failed` means the result reached the dashboard.
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
   - Plain JUnit 5 and a framework-less `main()` are left `done` by the SDK. That is why B2 adds the
     callback; without it, mark the sessions from the runner's result as shown below.
-  - The official sample has no test framework either: if its sessions show `done`, mark each one
-    from the run output (each platform prints `Sample test passed!` when its flow succeeds).
+  - The official sample has no test framework either, so its sessions are left `done`. Mark each
+    from `log/browserstack-javaagent.log`: it records each platform's capabilities and any
+    exception (the console prints `Sample test passed!` on success, without the platform).
 - To mark a session yourself from the test runner's own result (use the assertion message as the
   reason for a failure, and say in your report that you marked it):
   ```bash
@@ -366,12 +422,13 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
     -d '{"status":"passed","reason":"Marked from the test runner result"}' \
     "https://api.browserstack.com/automate/sessions/<session_hashed_id>.json"
   ```
-  Only do this when you can tell which test result belongs to which session (for example one test
-  per platform). Otherwise report the runner's result and explain that the dashboard shows `done`.
+  Only do this when you can tell which test result belongs to which session (one test per
+  platform, or session names that carry the test name). Otherwise report the runner's result and
+  explain that the dashboard shows `done`.
 
 ## Report
 
-Print one summary block, then one line on what the test does and where it came from:
+Print one summary block, then one line on what the tests do and where they came from:
 
 ```
 ============================================================
@@ -379,22 +436,41 @@ BrowserStack Automate — Run Complete
 ------------------------------------------------------------
 Ran       : [Sample build: browserstack/vanilla-java-browserstack] or [Your tests: <path>]
 Result    : <N> of <M> sessions passed (from the BrowserStack API)
-Platforms : <browser · OS — passed/failed, one per line>
+Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total>
 Build     : <build name>
 Dashboard : https://automate.browserstack.com/dashboard/v2/builds/<hashed_id>
 ============================================================
 ```
 
-Each session on the dashboard has its video, text logs, network logs and console logs.
+Test runners count tests, not sessions: a test that fails on one platform shows as one failed
+test. The API count above is the result. Each session on the dashboard has its video and text
+logs, plus network and console logs when `browserstack.yml` turns them on.
+
+## When sessions failed
+
+Report failures as results. Don't change test code to make them pass unless the user asks.
+
+- **Sample build:** never edit BrowserStack's sample.
+  - Failed the same way on every platform: the sample itself is out of date (for example a
+    locator the demo site now matches more than once, or no wait for the product list). Say so
+    plainly, note that the connection and pass/fail reporting worked, and offer to run the user's
+    own tests instead.
+  - Failed on one platform with an element-not-found error right after the page loaded: a timing
+    flake in the sample. Re-run once with a new build name and report both builds.
+- **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
+  platform (often real iOS Safari), say it is specific to that platform and offer to look at it
+  separately. Don't edit the test without the user's OK.
 
 ## What I can do next
 
-After a successful run, offer three or four of these, one line each, then wait for the user's
-answer (extra sessions and devices use plan minutes):
+After the report, offer three or four of these, one line each, then wait for the user's answer
+(extra sessions and devices use plan minutes). After a red run, leave out "Run faster".
 
 - **Run faster:** "Your plan allows N parallel sessions and M are free. I can set
-  `parallelsPerPlatform: K` so a full suite finishes up to K× faster." K = max(1, ⌊free ÷
-  platforms⌋), no higher than the number of tests. After a one-test run, frame it for their full suite.
+  `parallelsPerPlatform: K` so a full suite finishes up to K× faster." N is the smaller of the two
+  plan limits. K = max(1, ⌊free ÷ platforms⌋), capped at 5 because other people on the team share
+  the same pool; it is how many tests each platform runs at once in a full suite, so don't cap it
+  at the number of tests in this run.
 - **Wider coverage:** add browsers, OS versions or real devices (for example Firefox, an older
   Safari, a Pixel or an iPad).
 - **Your own app:** after the sample build, run their own Selenium Java tests; for localhost or staging,
@@ -406,7 +482,7 @@ answer (extra sessions and devices use plan minutes):
 | Symptom | Cause and fix |
 | --- | --- |
 | Tests pass locally but the API shows no build | The run did not go through the BrowserStack SDK. Check the run command and wiring below, and read `log/sdk-cli.log` (mask the key) |
-| Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → ask the user before installing Rosetta or a native binary |
+| Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → ask the user to install Rosetta themselves (`softwareupdate --install-rosetta`), then re-run |
 | `All parallel tests are currently in use` | The plan's parallel limit is reached; lower `parallelsPerPlatform` or wait |
 | `Browser/OS combination not supported` | A retired device or OS version: re-check the catalog (step A3), swap to the closest current one and re-run once |
 | Session fails to start with a connect timeout while parallels are free | Usually transient: re-run once. If it repeats, the network may block `*.browserstack.com` (allow outbound HTTPS) |
@@ -415,6 +491,7 @@ answer (extra sessions and devices use plan minutes):
 | `agent already loaded` | The agent is attached twice: keep the surefire `argLine` or `browserstack-sdk mvn test`, not both |
 | A browser opens on the user's machine; the API shows no build | A driver-manager factory, or an SDK too old for the Selenium version: use `new ChromeDriver()` and the current SDK |
 | `pattern matching in instanceof is not supported in -source 8` | Use the Java 8 form of the callback shown in B2, step 4 |
+| Sample build: every platform fails with `NoSuchElementException` on `//*[@id="1"]/p` | The sample reads the product list before bstackdemo.com has rendered it (no wait). It is the sample, not your setup: report it as in "When sessions failed" |
 | JaCoCo prints `Unsupported class file major version` | JaCoCo is older than the JDK Maven runs on; harmless when the API shows the sessions passed |
 
 ## Quick reference
