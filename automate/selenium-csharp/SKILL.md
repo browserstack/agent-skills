@@ -162,7 +162,8 @@ Never overwrite a folder the user may have changed.
 
 ### A3. Point `browserstack.yml` at this run
 
-Change only these two lines of `browserstack.yml`, and leave the rest as BrowserStack ships it:
+Change only these two lines of `browserstack.yml` (A4 names any other change a sample needs), and
+leave the rest as BrowserStack ships it:
 
 ```bash
 BUILD_NAME="bsk-automate-selenium-csharp-sample-$(date +%Y%m%d-%H%M%S)"
@@ -410,6 +411,9 @@ After the report, offer three or four of these, one line each, then wait for the
 | NuGet restore fails | Check access to `api.nuget.org` (corporate proxy or feed settings) |
 
 ## Quick reference
+
+The sample-build row leaves out the A3 and A4 edits to `browserstack.yml`; for a real run follow
+A2 to A4.
 
 | Task | Command |
 | --- | --- |

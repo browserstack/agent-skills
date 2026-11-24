@@ -161,7 +161,8 @@ Never overwrite a folder the user may have changed.
 
 ### A3. Point `browserstack.yml` at this run
 
-Change only these two lines of `browserstack.yml`, and leave the rest as BrowserStack ships it:
+Change only these two lines of `browserstack.yml` (A4 names any other change a sample needs), and
+leave the rest as BrowserStack ships it:
 
 ```bash
 BUILD_NAME="bsk-automate-playwright-python-sample-$(date +%Y%m%d-%H%M%S)"
@@ -203,7 +204,9 @@ sample's `to_have_count` check fails every run (Nov 2026). List both the Playwri
 swap in the plan. On Windows use `.venv\Scripts\pip` and `.venv\Scripts\browserstack-sdk`. The SDK
 runs `tests/sample-test.py` (adds a product to the cart on bstackdemo.com and checks the cart) on
 every platform in `browserstack.yml` (desktop Chrome, WebKit and Firefox), in parallel, and the
-test reports its own pass/fail. The browsers run on BrowserStack, so don't run `playwright install`.
+test reports its own pass/fail. The browsers run on BrowserStack, so don't run `playwright install`. The SDK's notices "Please
+install pytest-selenium package", "Failed to patch pytest selenium" and "playwright.Android not
+importable" are harmless; don't install packages to silence them.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -428,6 +431,9 @@ After the report, offer three or four of these, one line each, then wait for the
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
 
 ## Quick reference
+
+The sample-build row leaves out the A3 and A4 edits to `browserstack.yml`; for a real run follow
+A2 to A4.
 
 | Task | Command |
 | --- | --- |

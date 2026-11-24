@@ -145,10 +145,10 @@ This runs BrowserStack's official Playwright C# sample (`browserstack/csharp-pla
 
 ```bash
 dotnet --version        # .NET SDK 6 or newer
-dotnet --list-runtimes  # is a Microsoft.NETCore.App 6.0.x runtime installed? (needed in A4)
+dotnet --list-runtimes  # no Microsoft.NETCore.App 6.0.x? fine: A4 runs on a newer one
 git --version
 ```
-If any is missing, tell the user what to install and stop.
+If `dotnet` or `git` is missing, tell the user what to install and stop.
 
 ### A2. Clone the official sample into a new folder
 
@@ -162,7 +162,8 @@ Never overwrite a folder the user may have changed.
 
 ### A3. Point `browserstack.yml` at this run
 
-Change only these two lines of `browserstack.yml`, and leave the rest as BrowserStack ships it:
+Change only these two lines of `browserstack.yml` (A4 names any other change a sample needs), and
+leave the rest as BrowserStack ships it:
 
 ```bash
 BUILD_NAME="bsk-automate-playwright-csharp-sample-$(date +%Y%m%d-%H%M%S)"
@@ -413,6 +414,9 @@ After the report, offer three or four of these, one line each, then wait for the
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
 
 ## Quick reference
+
+The sample-build row leaves out the A3 and A4 edits to `browserstack.yml`; for a real run follow
+A2 to A4.
 
 | Task | Command |
 | --- | --- |

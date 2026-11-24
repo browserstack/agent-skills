@@ -15,4 +15,6 @@ sample's `to_have_count` check fails every run (Nov 2026). List both the Playwri
 swap in the plan. On Windows use `.venv\Scripts\pip` and `.venv\Scripts\browserstack-sdk`. The SDK
 runs `tests/sample-test.py` (adds a product to the cart on bstackdemo.com and checks the cart) on
 every platform in `browserstack.yml` (desktop Chrome, WebKit and Firefox), in parallel, and the
-test reports its own pass/fail. The browsers run on BrowserStack, so don't run `playwright install`.
+test reports its own pass/fail. The browsers run on BrowserStack, so don't run `playwright install`. The SDK's notices "Please
+install pytest-selenium package", "Failed to patch pytest selenium" and "playwright.Android not
+importable" are harmless; don't install packages to silence them.
