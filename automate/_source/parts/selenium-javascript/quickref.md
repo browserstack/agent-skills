@@ -1,0 +1,7 @@
+| Task | Command |
+| --- | --- |
+| Sample build | `git clone https://github.com/browserstack/mocha-browserstack.git && cd mocha-browserstack && npm install && npm run sample-test` |
+| Your tests (Mocha) | `npx browserstack-node-sdk mocha test/*.js --timeout 60000` |
+| Your tests (Jest) | `npx browserstack-node-sdk jest` |
+| Current SDK version | `npm view browserstack-node-sdk version` |
+| Docs | https://www.browserstack.com/docs/automate/selenium/getting-started/nodejs |

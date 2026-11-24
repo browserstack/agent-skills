@@ -1,0 +1,2 @@
+framework: playwright
+testObservability: true
