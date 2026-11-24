@@ -57,7 +57,7 @@ Look at the folder the user is in (read-only). This skill is for **{{label}}**: 
 
 {{prompts_table}}
 
-  For anything else (C#, Ruby, PHP, WebdriverIO, Nightwatch, Cypress, Playwright with Python, Java
+  For anything else (Ruby, PHP, WebdriverIO, Nightwatch, Cypress, Playwright with Python, Java
   or C#) there is no skill yet: point the user to https://www.browserstack.com/docs/automate and stop.
 - A mixed project (for example Java and Python tests): work only on the {{label}} part, and name the
   skill that covers the rest.
@@ -122,7 +122,7 @@ This runs BrowserStack's official {{label}} sample (`browserstack/{{sample_repo}
 
 ```bash
 git clone -b {{sample_branch}} https://github.com/browserstack/{{sample_repo}}.git
-cd {{sample_repo}}
+cd {{sample_repo}}{{sample_subdir}}
 ```
 
 If `{{sample_repo}}` already exists, clone into `{{sample_repo}}-$(date +%Y%m%d-%H%M%S)` instead.

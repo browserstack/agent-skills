@@ -59,10 +59,12 @@ Look at the folder the user is in (read-only). This skill is for **Selenium Java
     `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-python/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-selenium-python/SKILL.md, then follow that skill to run my own Selenium Python tests on BrowserStack Automate.`
   - **Selenium JavaScript** (`package.json` that depends on `selenium-webdriver` (Mocha or Jest)):
     `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-javascript/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-selenium-javascript/SKILL.md, then follow that skill to run my own Selenium JavaScript tests on BrowserStack Automate.`
+  - **Selenium C#** (a `.csproj` that references `Selenium.WebDriver` (NUnit, xUnit or MSTest)):
+    `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-csharp/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-selenium-csharp/SKILL.md, then follow that skill to run my own Selenium C# tests on BrowserStack Automate.`
   - **Playwright JavaScript** (`package.json` that depends on `@playwright/test` (JavaScript or TypeScript)):
     `Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-javascript/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-playwright-javascript/SKILL.md, then follow that skill to run my own Playwright JavaScript tests on BrowserStack Automate.`
 
-  For anything else (C#, Ruby, PHP, WebdriverIO, Nightwatch, Cypress, Playwright with Python, Java
+  For anything else (Ruby, PHP, WebdriverIO, Nightwatch, Cypress, Playwright with Python, Java
   or C#) there is no skill yet: point the user to https://www.browserstack.com/docs/automate and stop.
 - A mixed project (for example Java and Python tests): work only on the Selenium Java part, and name the
   skill that covers the rest.

@@ -7,6 +7,7 @@ Each skill takes a coding agent from one pasted prompt to a build on the Browser
 | Selenium | Java | real desktop browsers and real mobile devices | [`vanilla-java-browserstack`](https://github.com/browserstack/vanilla-java-browserstack/tree/sdk-sample) | [`selenium-java`](selenium-java/SKILL.md) |
 | Selenium | Python | real desktop browsers and real mobile devices | [`python-selenium-browserstack`](https://github.com/browserstack/python-selenium-browserstack/tree/main) | [`selenium-python`](selenium-python/SKILL.md) |
 | Selenium | JavaScript | real desktop browsers and real mobile devices | [`mocha-browserstack`](https://github.com/browserstack/mocha-browserstack/tree/master) | [`selenium-javascript`](selenium-javascript/SKILL.md) |
+| Selenium | C# | real desktop browsers and real mobile devices | [`nunit-browserstack`](https://github.com/browserstack/nunit-browserstack/tree/master) | [`selenium-csharp`](selenium-csharp/SKILL.md) |
 | Playwright | JavaScript | real desktop browsers, with real Android and iPhone on request | [`node-js-playwright-browserstack`](https://github.com/browserstack/node-js-playwright-browserstack/tree/main) | [`playwright-javascript`](playwright-javascript/SKILL.md) |
 
 ## Prompts
@@ -44,6 +45,17 @@ Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automa
 Run your own tests:
 ```
 Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-javascript/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-selenium-javascript/SKILL.md, then follow that skill to run my own Selenium JavaScript tests on BrowserStack Automate.
+```
+
+**Selenium C#**
+
+Run the sample build:
+```
+Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-csharp/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-selenium-csharp/SKILL.md, then follow that skill to run the Selenium C# sample build on BrowserStack Automate.
+```
+Run your own tests:
+```
+Download https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/selenium-csharp/SKILL.md and save it permanently in this project's skills folder as browserstack-automate-selenium-csharp/SKILL.md, then follow that skill to run my own Selenium C# tests on BrowserStack Automate.
 ```
 
 **Playwright JavaScript**
