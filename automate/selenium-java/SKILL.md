@@ -116,7 +116,7 @@ the prompt again.
    - For the sample build: read the platforms it ships with, without cloning yet, and check any real
      devices against the live catalog (step A3):
      ```bash
-     curl -fsSL https://raw.githubusercontent.com/browserstack/vanilla-java-browserstack/sdk-sample/browserstack.yml
+     curl -fsSL https://raw.githubusercontent.com/browserstack/junit-browserstack/master/junit-5/browserstack.yml
      ```
    - For your own tests: the project assessment in Path B, step B1.
 3. **Ask only what you still need, in one message.** The sample build usually needs nothing. For
@@ -140,7 +140,7 @@ the prompt again.
 ## Path A: sample build
 
 This runs BrowserStack's official Selenium Java sample, the one the in-product Quick Integration
-Guide uses (https://www.browserstack.com/docs/onboarding-cad/java-sdk/getting-started): `browserstack/vanilla-java-browserstack`, branch `sdk-sample`, on the
+Guide uses (https://www.browserstack.com/docs/onboarding-cad/junit-5-sdk/getting-started): `browserstack/junit-browserstack`, branch `master`, on the
 platforms it ships with.
 
 ### A1. Prerequisites
@@ -155,11 +155,11 @@ If any is missing, tell the user what to install and stop.
 ### A2. Clone the official sample into a new folder
 
 ```bash
-git clone -b sdk-sample https://github.com/browserstack/vanilla-java-browserstack.git
-cd vanilla-java-browserstack
+git clone -b master https://github.com/browserstack/junit-browserstack.git
+cd junit-browserstack/junit-5
 ```
 
-If `vanilla-java-browserstack` already exists, clone into `vanilla-java-browserstack-$(date +%Y%m%d-%H%M%S)` instead.
+If `junit-browserstack` already exists, clone into `junit-browserstack-$(date +%Y%m%d-%H%M%S)` instead.
 Never overwrite a folder the user may have changed.
 
 ### A3. Point `browserstack.yml` at this run
@@ -191,18 +191,16 @@ git check-ignore -q log/sdk-cli.log || echo 'log/' >> .gitignore
 ### A4. Install and run
 
 ```bash
-mvn test
+mvn test -P sample-test
 ```
 
-Always clone with `-b sdk-sample` (A2): the Quick Integration Guide's git command has no `-b`, and
-this repo's default branch holds only a README, so `mvn test` would find no project. The guide's
-ZIP link uses `sdk-sample`.
-
-The sample's `pom.xml` attaches the BrowserStack Java SDK as a `-javaagent` and runs
-`BStackDemoTest` (adds a product to the cart on bstackdemo.com and checks it is there) on every
-platform in `browserstack.yml`, in parallel. Don't add `-q`; if the output is long, read the
-`BUILD` lines and `log/browserstack-javaagent.log`. Warnings about the deprecated `LATEST` SDK
-version, SeleniumManager driver versions or CDP versions are harmless.
+This is the command the Quick Integration Guide's JUnit 5 guide gives. The pom has no
+`sample-test` profile, so Maven warns that it "could not be activated" and runs its default
+configuration, which is the sample test: harmless. The pom attaches the BrowserStack Java SDK as a
+`-javaagent` and runs `BStackSampleTest` (adds a product to the cart on bstackdemo.com and checks
+the cart, waiting for each element) with JUnit 5 on every platform in `browserstack.yml`, in
+parallel; the SDK names and marks each session itself. Don't add `-q`; if the output is long, read
+the `Tests run:` and `BUILD` lines. Warnings about the deprecated `LATEST` SDK version are harmless.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -470,12 +468,9 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
   A session whose only failure was a `beforeAll` hook is also left `done` and unnamed: report the
   runner's hook error for that platform.
-  - Plain JUnit 5 and a framework-less `main()` are left `done` by the SDK. That is why B2 adds the
-    callback; without it, mark the sessions from the runner's result as shown below.
-  - The official sample has no test framework either, so its sessions are left `done`. Mark each
-    from `log/browserstack-javaagent.log`: it records each platform's capabilities and any
-    exception, followed by its `Session ID:` (only sessions that threw have that block, and it
-    names the browser, not the OS: a session without one passed) (the console prints `Sample test passed!` on success, without the platform).
+  - Plain JUnit 5 and a framework-less `main()` in the user's own project are left `done` by the
+    SDK. That is why B2 adds the callback; without it, mark the sessions from the runner's result
+    as shown below. The official sample's sessions are named and marked by the SDK (26 Nov 2026).
 - To mark a session yourself from the test runner's own result (use the assertion message as the
   reason for a failure, and say in your report that you marked it):
   ```bash
@@ -497,7 +492,7 @@ what the tests do and where they came from:
 ============================================================
 BrowserStack Automate — Run Complete
 ------------------------------------------------------------
-Ran       : [Sample build: browserstack/vanilla-java-browserstack] or [Your tests: <path>]
+Ran       : [Sample build: browserstack/junit-browserstack] or [Your tests: <path>]
 Result    : <N> of <M> sessions passed (from the BrowserStack API)
 Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total;
             a platform that never got a session: "no session" and the runner's error>
@@ -563,7 +558,6 @@ After the report, offer three or four of these, one line each, then wait for the
 | `agent already loaded` | The agent is attached twice: keep the surefire `argLine` or `browserstack-sdk mvn test`, not both |
 | A browser opens on the user's machine; the API shows no build | A driver-manager factory, or an SDK too old for the Selenium version: use `new ChromeDriver()` and the current SDK |
 | `pattern matching in instanceof is not supported in -source 8` | Use the Java 8 form of the callback shown in B2, step 4 |
-| Sample build: every platform fails with `NoSuchElementException` on `//*[@id="1"]/p` | The sample reads the product list before bstackdemo.com has rendered it (no wait). It is the sample, not your setup: report it as in "When sessions failed" |
 | JaCoCo prints `Unsupported class file major version` | JaCoCo is older than the JDK Maven runs on; harmless when the API shows the sessions passed |
 | Gradle: only one platform gets a session and the output shows `java.io.EOFException … GradleWorkerMain` | The agent is on Gradle's `test` task, where the SDK can drive one platform. Use the `browserstackTest` task from B2 |
 | Gradle 9: `Failed to load JUnit Platform … including the JUnit Platform launcher` | Gradle 9 no longer adds the launcher; it is the project's build, not BrowserStack. `browserstackTest` brings it in through `junit-platform-console`. For `gradle test` the project needs `testRuntimeOnly 'org.junit.platform:junit-platform-launcher'` (show it as a diff and ask) |
@@ -575,7 +569,7 @@ A2 to A4.
 
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone -b sdk-sample https://github.com/browserstack/vanilla-java-browserstack.git && cd vanilla-java-browserstack && mvn test` |
+| Sample build | `git clone -b master https://github.com/browserstack/junit-browserstack.git && cd junit-browserstack/junit-5 && mvn test -P sample-test` |
 | Your tests (Maven) | `mvn test` with the agent on surefire's `argLine` |
 | One test class | `mvn test -Dtest=LoginTest` |
 | Your tests (Gradle) | `./gradlew browserstackTest` (the task from B2) |

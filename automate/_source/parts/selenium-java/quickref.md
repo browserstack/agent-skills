@@ -1,6 +1,6 @@
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone -b sdk-sample https://github.com/browserstack/vanilla-java-browserstack.git && cd vanilla-java-browserstack && mvn test` |
+| Sample build | `git clone -b master https://github.com/browserstack/junit-browserstack.git && cd junit-browserstack/junit-5 && mvn test -P sample-test` |
 | Your tests (Maven) | `mvn test` with the agent on surefire's `argLine` |
 | One test class | `mvn test -Dtest=LoginTest` |
 | Your tests (Gradle) | `./gradlew browserstackTest` (the task from B2) |

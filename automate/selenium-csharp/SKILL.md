@@ -116,7 +116,7 @@ the prompt again.
    - For the sample build: read the platforms it ships with, without cloning yet, and check any real
      devices against the live catalog (step A3):
      ```bash
-     curl -fsSL https://raw.githubusercontent.com/browserstack/nunit-browserstack/master/NUnit-BrowserStack/browserstack.yml
+     curl -fsSL https://raw.githubusercontent.com/browserstack/xunit-browserstack/main/XUnit-BrowserStack/browserstack.yml
      ```
    - For your own tests: the project assessment in Path B, step B1.
 3. **Ask only what you still need, in one message.** The sample build usually needs nothing. For
@@ -140,7 +140,7 @@ the prompt again.
 ## Path A: sample build
 
 This runs BrowserStack's official Selenium C# sample, the one the in-product Quick Integration
-Guide uses (https://www.browserstack.com/docs/onboarding-cad/c-sharp-sdk/getting-started): `browserstack/nunit-browserstack`, branch `master`, on the
+Guide uses (https://www.browserstack.com/docs/onboarding-cad/xunit-sdk/getting-started): `browserstack/xunit-browserstack`, branch `main`, on the
 platforms it ships with.
 
 ### A1. Prerequisites
@@ -155,11 +155,11 @@ If any is missing, tell the user what to install and stop.
 ### A2. Clone the official sample into a new folder
 
 ```bash
-git clone -b master https://github.com/browserstack/nunit-browserstack.git
-cd nunit-browserstack/NUnit-BrowserStack
+git clone -b main https://github.com/browserstack/xunit-browserstack.git
+cd xunit-browserstack/XUnit-BrowserStack
 ```
 
-If `nunit-browserstack` already exists, clone into `nunit-browserstack-$(date +%Y%m%d-%H%M%S)` instead.
+If `xunit-browserstack` already exists, clone into `xunit-browserstack-$(date +%Y%m%d-%H%M%S)` instead.
 Never overwrite a folder the user may have changed.
 
 ### A3. Point `browserstack.yml` at this run
@@ -197,11 +197,12 @@ one installed (from `dotnet --list-runtimes`), for example `net10.0`:
 dotnet test --filter "Category=sample-test" -f net10.0
 ```
 
-The BrowserStack SDK (the `BrowserStack.TestAdapter` package already in the project) runs
-`SampleTest` (adds a product to the cart on bstackdemo.com and checks it is there) on every
-platform in `browserstack.yml`, in parallel. The build also adds the SDK's own `browserstack-sdk`
-tool to `.config/dotnet-tools.json`: list it in the plan. The sample test has no waits, so some
-platforms can fail with `NoSuchElementException` (see "When sessions failed").
+Use `Category=`: the Quick Integration Guide's xUnit page says `--filter TestCategory=sample-test`,
+which matches no test in this project, so 0 tests would run. The BrowserStack SDK (the
+`BrowserStack.TestAdapter` package already in the project) runs `SampleTest` (adds a product to
+the cart on bstackdemo.com and checks the cart, waiting for each element) with xUnit on every
+platform in `browserstack.yml`, in parallel, and names and marks each session itself. The build
+also adds the SDK's own `browserstack-sdk` tool to a `dotnet-tools.json`: list it in the plan.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -382,7 +383,7 @@ what the tests do and where they came from:
 ============================================================
 BrowserStack Automate — Run Complete
 ------------------------------------------------------------
-Ran       : [Sample build: browserstack/nunit-browserstack] or [Your tests: <path>]
+Ran       : [Sample build: browserstack/xunit-browserstack] or [Your tests: <path>]
 Result    : <N> of <M> sessions passed (from the BrowserStack API)
 Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total;
             a platform that never got a session: "no session" and the runner's error>
@@ -446,11 +447,11 @@ After the report, offer three or four of these, one line each, then wait for the
 | `dotnet test` finishes with 0 tests run, or runs locally | An outdated `BrowserStack.TestAdapter`: update it to the current release (B2, step 1) |
 | `You must install or update .NET to run this application` | The project targets a .NET version that isn't installed: run with `-f <installed version>` |
 | Android: `Unable to maximize window` | `Maximize()` on a real phone: guard it as in B2, step 3 |
-| Sample build: some or all platforms fail with `NoSuchElementException` on `//*[@id="1"]/p` | The sample has no waits (on 26 Nov it failed on 2 of 3 platforms in two runs and on all 3 in a third). If only some failed, re-run once with a new build name; if the same platforms fail again, or all failed, it is the sample: report it and offer the user's own tests (see "When sessions failed") |
 | `No test matches the given testcase filter` at the end of the output | Harmless: the filter is also applied to the solution's other test assemblies. Judge the run by the API |
 | Test host crashed with `JsonReaderException … AtomicFile`, or the output shows another project's tests | Another .NET SDK run is active on this machine (they share `$TMPDIR/.browserstack/`, which also holds a copy of the credentials): run one at a time, and trust the API |
 | iOS: `FindElements` returns nothing right after a page load | Real iOS Safari doesn't apply the implicit wait to `FindElements`: the test needs an explicit wait (ask before changing it) |
 | NuGet restore fails | Check access to `api.nuget.org` (corporate proxy or feed settings) |
+| Sample build: `dotnet test` ends with 0 tests run | The filter is `TestCategory=…` (as on the Quick Integration Guide's xUnit page): this sample's trait is `Category`, so use `--filter "Category=sample-test"` |
 
 ## Quick reference
 
@@ -459,7 +460,7 @@ A2 to A4.
 
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone https://github.com/browserstack/nunit-browserstack.git && cd nunit-browserstack/NUnit-BrowserStack && dotnet test --filter "Category=sample-test" -f net10.0` |
+| Sample build | `git clone -b main https://github.com/browserstack/xunit-browserstack.git && cd xunit-browserstack/XUnit-BrowserStack && dotnet test --filter "Category=sample-test" -f net10.0` |
 | Your tests | `dotnet test <Tests.csproj>` |
 | Current SDK version | `curl -s https://api.nuget.org/v3-flatcontainer/browserstack.testadapter/index.json` (last entry) |
 | Installed runtimes | `dotnet --list-runtimes` |
