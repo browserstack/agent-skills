@@ -246,7 +246,10 @@ Note these in a short Assessment block at the top of your plan:
 Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
 multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
 (a `browserstack.yml`, an SDK dependency, an SDK agent), update it in place and show the diff
-instead of adding a second copy. By default the file runs on Windows 11 Chrome, macOS Sequoia Safari, a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari); the user
+instead of adding a second copy: give it a unique `bsk-` `buildName` (the API check depends on it),
+and if it has `browserstackLocal: true` while the tests open only public URLs, set it to `false`.
+Leave out tests that need BrowserStack Local or a local server the user hasn't started (for
+example a sample's `*local*` test), and say so. By default the file runs on Windows 11 Chrome, macOS Sequoia Safari, a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari); the user
 can change this when approving the plan:
 
 ```yaml

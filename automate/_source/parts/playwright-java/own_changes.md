@@ -59,5 +59,6 @@
    BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
    `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
    sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
-   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   project's `browserstack.yml` has one, change it to `playwright-webkit` with `browserVersion: latest`
+   (a Safari version such as `15.6` is not a WebKit version) and show the diff. Keep
    `safari` only on real iPhone rows (`deviceName: iPhone …`).

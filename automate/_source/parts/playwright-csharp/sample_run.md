@@ -17,4 +17,4 @@ If a first attempt failed, delete `bin/` and `obj/` before running again (see Tr
 
 Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
 (`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
-`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.
+`playwright-webkit` with `browserVersion: latest`, and list that change in the plan; `safari` stays only on real iPhone rows.

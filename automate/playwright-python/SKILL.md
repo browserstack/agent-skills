@@ -212,7 +212,7 @@ importable" are harmless; don't install packages to silence them.
 
 Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
 (`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
-`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.
+`playwright-webkit` with `browserVersion: latest`, and list that change in the plan; `safari` stays only on real iPhone rows.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -264,7 +264,8 @@ Note these in a short Assessment block at the top of your plan:
   API's `device` field shows what really ran.
 - **Real Android:** not available for Playwright Python through the SDK (it needs a separate
   BrowserStack package and `playwright.android.connect`, so the tests would need rewriting). Never
-  add an Android row: the SDK still starts device sessions, which end in `error`. Point the user to
+  add an Android row, and if `browserstack.yml` already has one (the Quick Integration Guide's config
+  does), remove it in the plan and say why: the SDK still starts device sessions, which end in `error`. Point the user to
   https://www.browserstack.com/docs/automate/playwright/playwright-android/python.
 - **Which tests to run:** the ones the user named; otherwise all. If they named a flow that has no
   test, pick the test whose name is the nearest step in that flow, and if two are equally close,
@@ -296,13 +297,17 @@ Note these in a short Assessment block at the top of your plan:
    BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
    `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
    sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
-   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   project's `browserstack.yml` has one, change it to `playwright-webkit` with `browserVersion: latest`
+   (a Safari version such as `15.6` is not a WebKit version) and show the diff. Keep
    `safari` only on real iPhone rows (`deviceName: iPhone …`).
 
 Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
 multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
 (a `browserstack.yml`, an SDK dependency, an SDK agent), update it in place and show the diff
-instead of adding a second copy. By default the file runs on Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox; the user
+instead of adding a second copy: give it a unique `bsk-` `buildName` (the API check depends on it),
+and if it has `browserstackLocal: true` while the tests open only public URLs, set it to `false`.
+Leave out tests that need BrowserStack Local or a local server the user hasn't started (for
+example a sample's `*local*` test), and say so. By default the file runs on Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox; the user
 can change this when approving the plan:
 
 ```yaml
@@ -506,7 +511,8 @@ After the report, offer three or four of these, one line each, then wait for the
 | macOS Ventura WebKit: `LocatorAssertions.to_have_count` fails with an empty message | Seen on every Ventura WebKit run of the sample (Nov 2026): use macOS Sequoia for WebKit |
 | iOS: `Only one browser context is allowed` from the second test on | `pytest-playwright` opens a new context per test in one shared browser: add the function-scoped `browser` fixture in `conftest.py` (B1) so each test gets its own session. Tests that open several contexts themselves can't run on real iOS |
 | Real Android: `AssertionError` at `assert pre_launched_browser`, sessions end `error` / `ABRUPT_CLOSE` | Playwright Python can't drive real Android through the SDK: remove the Android row (B1) |
-| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit`. Keep `safari` only on real iPhone rows |
+| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit` with `browserVersion: latest`. Keep `safari` only on real iPhone rows |
+| `browserType.connect: Error: Unsupported browser version` on a `playwright-webkit` row | The row kept a Safari version (for example `15.6` from the Quick Integration Guide's config): set `browserVersion: latest` |
 
 ## Quick reference
 

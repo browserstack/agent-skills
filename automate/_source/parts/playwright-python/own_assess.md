@@ -40,7 +40,8 @@ Note these in a short Assessment block at the top of your plan:
   API's `device` field shows what really ran.
 - **Real Android:** not available for Playwright Python through the SDK (it needs a separate
   BrowserStack package and `playwright.android.connect`, so the tests would need rewriting). Never
-  add an Android row: the SDK still starts device sessions, which end in `error`. Point the user to
+  add an Android row, and if `browserstack.yml` already has one (the Quick Integration Guide's config
+  does), remove it in the plan and say why: the SDK still starts device sessions, which end in `error`. Point the user to
   https://www.browserstack.com/docs/automate/playwright/playwright-android/python.
 - **Which tests to run:** the ones the user named; otherwise all. If they named a flow that has no
   test, pick the test whose name is the nearest step in that flow, and if two are equally close,

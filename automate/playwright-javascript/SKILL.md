@@ -213,7 +213,7 @@ harmless.
 
 Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
 (`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
-`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.
+`playwright-webkit` with `browserVersion: latest`, and list that change in the plan; `safari` stays only on real iPhone rows.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -278,13 +278,17 @@ Note these in a short Assessment block at the top of your plan:
    BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
    `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
    sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
-   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   project's `browserstack.yml` has one, change it to `playwright-webkit` with `browserVersion: latest`
+   (a Safari version such as `15.6` is not a WebKit version) and show the diff. Keep
    `safari` only on real iPhone rows (`deviceName: iPhone …`).
 
 Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
 multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
 (a `browserstack.yml`, an SDK dependency, an SDK agent), update it in place and show the diff
-instead of adding a second copy. By default the file runs on Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox; the user
+instead of adding a second copy: give it a unique `bsk-` `buildName` (the API check depends on it),
+and if it has `browserstackLocal: true` while the tests open only public URLs, set it to `false`.
+Leave out tests that need BrowserStack Local or a local server the user hasn't started (for
+example a sample's `*local*` test), and say so. By default the file runs on Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox; the user
 can change this when approving the plan:
 
 ```yaml
@@ -489,7 +493,8 @@ After the report, offer three or four of these, one line each, then wait for the
 | Sample build: tests named "always failing …" fail and "flaky …" tests pass or fail at random | Expected: the Quick Integration Guide's sample is a test-reporting demo. Report those as expected failures and judge the run by the other tests |
 | Sample build, Firefox: `"beforeAll" hook timeout of 10000ms exceeded`, then `Target page, context or browser has been closed`; sessions `done` | The sample's `beforeAll` (load the page, then wait 3 s) runs past its 10 s timeout on remote Firefox. A real failure, not one of the demo's: report it; don't edit the sample |
 | Output stops for 5 minutes or more and the API shows no new session for that platform | A browser connection hung (seen once on macOS Ventura WebKit, Nov 2026; a slow start can also take 3 to 5 minutes). Press Ctrl-C once: the SDK still closes the build and prints the dashboard link. Report those tests as interrupted or not run |
-| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit`. Keep `safari` only on real iPhone rows |
+| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit` with `browserVersion: latest`. Keep `safari` only on real iPhone rows |
+| `browserType.connect: Error: Unsupported browser version` on a `playwright-webkit` row | The row kept a Safari version (for example `15.6` from the Quick Integration Guide's config): set `browserVersion: latest` |
 
 ## Quick reference
 

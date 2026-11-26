@@ -206,7 +206,7 @@ the output means the sample is out of date even when the sessions show `passed`:
 
 Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
 (`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
-`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.
+`playwright-webkit` with `browserVersion: latest`, and list that change in the plan; `safari` stays only on real iPhone rows.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -311,13 +311,17 @@ Note these in a short Assessment block at the top of your plan:
    BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
    `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
    sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
-   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   project's `browserstack.yml` has one, change it to `playwright-webkit` with `browserVersion: latest`
+   (a Safari version such as `15.6` is not a WebKit version) and show the diff. Keep
    `safari` only on real iPhone rows (`deviceName: iPhone …`).
 
 Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
 multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
 (a `browserstack.yml`, an SDK dependency, an SDK agent), update it in place and show the diff
-instead of adding a second copy. By default the file runs on Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox; the user
+instead of adding a second copy: give it a unique `bsk-` `buildName` (the API check depends on it),
+and if it has `browserstackLocal: true` while the tests open only public URLs, set it to `false`.
+Leave out tests that need BrowserStack Local or a local server the user hasn't started (for
+example a sample's `*local*` test), and say so. By default the file runs on Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox; the user
 can change this when approving the plan:
 
 ```yaml
@@ -521,7 +525,8 @@ After the report, offer three or four of these, one line each, then wait for the
 | Gradle 9: `Failed to load JUnit Platform … including the JUnit Platform launcher` | Gradle 9 no longer adds the launcher; it is the project's build, not BrowserStack. `browserstackTest` brings it in through `junit-platform-console`. For `gradle test` the project needs `testRuntimeOnly 'org.junit.platform:junit-platform-launcher'` (show it as a diff and ask) |
 | No output for several minutes, and the API shows no session yet for one platform | The browser connection is slow to start (Ventura Chrome took 3 to 5 minutes on 26 Nov 2026) or has hung. Wait up to 10 minutes; then press Ctrl-C once. Maven then exits 130 with no summary, and the build link is in `log/browserstack-javaagent.log` |
 | `Tests run: 0` with `BUILD SUCCESS`, or an empty "View build" link | Nothing reached BrowserStack (for example the disk filled up during the run): fix the cause and re-run; never report it as a pass |
-| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit`. Keep `safari` only on real iPhone rows |
+| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit` with `browserVersion: latest`. Keep `safari` only on real iPhone rows |
+| `browserType.connect: Error: Unsupported browser version` on a `playwright-webkit` row | The row kept a Safari version (for example `15.6` from the Quick Integration Guide's config): set `browserVersion: latest` |
 
 ## Quick reference
 
