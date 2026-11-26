@@ -9,7 +9,7 @@ demo for BrowserStack's test reporting: its specs in `moduleA`, `moduleB` and `m
 the-internet.herokuapp.com) include tests named "always failing" and "flaky" that fail on purpose,
 next to passing ones and a retry example. Say so in the plan, and in the report count those as
 expected failures (see "When sessions failed"). Playwright starts a new worker, and with it a new
-session, after every failed test, so expect 10 to 15 sessions per platform. The deliberate
+session, after every failed test, so expect about 10 to 20 sessions per platform. The deliberate
 failures show these errors: `NullPointerError: Cannot read property 'foo' of null`, a wrong
 `toHaveTitle`, `Test failed, retrying...` (the retry example) and, for the flaky tests, `Test
 timeout of 10000ms exceeded`. On 26 Nov 2026, Firefox also hit `"beforeAll" hook timeout of

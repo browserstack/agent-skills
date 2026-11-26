@@ -201,7 +201,7 @@ demo for BrowserStack's test reporting: its specs in `moduleA`, `moduleB` and `m
 the-internet.herokuapp.com) include tests named "always failing" and "flaky" that fail on purpose,
 next to passing ones and a retry example. Say so in the plan, and in the report count those as
 expected failures (see "When sessions failed"). Playwright starts a new worker, and with it a new
-session, after every failed test, so expect 10 to 15 sessions per platform. The deliberate
+session, after every failed test, so expect about 10 to 20 sessions per platform. The deliberate
 failures show these errors: `NullPointerError: Cannot read property 'foo' of null`, a wrong
 `toHaveTitle`, `Test failed, retrying...` (the retry example) and, for the flaky tests, `Test
 timeout of 10000ms exceeded`. On 26 Nov 2026, Firefox also hit `"beforeAll" hook timeout of
@@ -357,10 +357,12 @@ print a link when no session was created. Check the BrowserStack API yourself:
 BUILD_NAME="<the buildName you set>"
 curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds.json?limit=100" \
   | python3 -c "import sys,json; n=sys.argv[1]; [print(b['automation_build']['hashed_id'], b['automation_build']['name']) for b in json.load(sys.stdin) if b['automation_build']['name'].startswith(n)]" "$BUILD_NAME"
-curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds/<hashed_id>/sessions.json" \
+curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds/<hashed_id>/sessions.json?limit=100" \
   | python3 -c "import sys,json; [print(s['automation_session'].get('os'), s['automation_session'].get('browser') or '', s['automation_session'].get('device') or '', '|', s['automation_session']['status'], '|', s['automation_session'].get('name')) for s in json.load(sys.stdin)]"
 ```
 
+- The sessions call returns 10 sessions unless you pass `limit` (as above); for builds with more
+  than 100 sessions, page on with `&offset=100`.
 - Match the build by **prefix**: the SDK appends an identifier, so `bsk-…-0930` shows up as
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
   default 10 within minutes. If more than one build matches (a shared account), use the
@@ -476,7 +478,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | Real Android Chrome: `click()` times out with "<element> intercepts pointer events", and the intercepting element changes on every retry | The page is wider than the phone screen, so Chrome scrolls only the visible area and Playwright checks the wrong spot (seen on Galaxy S23 and Pixel 9, Nov 2026; desktop and iPhone unaffected). Report it as Android-specific. With the user's OK, scroll the page to the element before the click (`await el.evaluate(e => window.scrollTo(0, e.getBoundingClientRect().top + scrollY - 120))`) or use `click({ force: true })` for that click on Android only; the lasting fix is removing the page's horizontal overflow |
 | Sample build: tests named "always failing …" fail and "flaky …" tests pass or fail at random | Expected: the Quick Integration Guide's sample is a test-reporting demo. Report those as expected failures and judge the run by the other tests |
 | Sample build, Firefox: `"beforeAll" hook timeout of 10000ms exceeded`, then `Target page, context or browser has been closed`; sessions `done` | The sample's `beforeAll` (load the page, then wait 3 s) runs past its 10 s timeout on remote Firefox. A real failure, not one of the demo's: report it; don't edit the sample |
-| Output stops for 5 minutes or more and the API shows no new session for that platform | A browser connection hung (seen on macOS Ventura WebKit, Nov 2026). Press Ctrl-C once: the SDK still closes the build and prints the dashboard link. Report those tests as interrupted or not run |
+| Output stops for 5 minutes or more and the API shows no new session for that platform | A browser connection hung (seen once on macOS Ventura WebKit, Nov 2026; a slow start can also take 3 to 5 minutes). Press Ctrl-C once: the SDK still closes the build and prints the dashboard link. Report those tests as interrupted or not run |
 
 ## Quick reference
 

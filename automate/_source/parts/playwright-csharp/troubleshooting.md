@@ -5,3 +5,4 @@
 | Test host crashed with `JsonReaderException … AtomicFile`, or the output shows another project's tests | Another .NET SDK run is active on this machine (they share `$TMPDIR/.browserstack/`, which also holds a copy of the credentials): run one at a time, and trust the API |
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
 | Real Android: every test fails with `KeyNotFoundException: The given key 'AndroidDevice' was not present in the dictionary`; sessions stay `done` with no name | Desktop-style tests can't drive real Android: remove the Android row (B1) |
+| A WebKit session takes 3 minutes or more to start while the other platforms have finished | Slow device allocation, not a hang (seen on macOS Ventura WebKit, 26 Nov 2026): wait up to 10 minutes before treating it as stuck |

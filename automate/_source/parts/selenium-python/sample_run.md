@@ -1,6 +1,6 @@
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt   # includes the current BrowserStack SDK from BrowserStack's server
+.venv/bin/pip install --no-cache-dir -r requirements.txt   # --no-cache-dir: fetch the current SDK, not an older cached copy
 .venv/bin/browserstack-sdk python ./tests/test.py
 ```
 

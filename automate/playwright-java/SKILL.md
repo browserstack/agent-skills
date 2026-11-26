@@ -390,10 +390,12 @@ print a link when no session was created. Check the BrowserStack API yourself:
 BUILD_NAME="<the buildName you set>"
 curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds.json?limit=100" \
   | python3 -c "import sys,json; n=sys.argv[1]; [print(b['automation_build']['hashed_id'], b['automation_build']['name']) for b in json.load(sys.stdin) if b['automation_build']['name'].startswith(n)]" "$BUILD_NAME"
-curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds/<hashed_id>/sessions.json" \
+curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds/<hashed_id>/sessions.json?limit=100" \
   | python3 -c "import sys,json; [print(s['automation_session'].get('os'), s['automation_session'].get('browser') or '', s['automation_session'].get('device') or '', '|', s['automation_session']['status'], '|', s['automation_session'].get('name')) for s in json.load(sys.stdin)]"
 ```
 
+- The sessions call returns 10 sessions unless you pass `limit` (as above); for builds with more
+  than 100 sessions, page on with `&offset=100`.
 - Match the build by **prefix**: the SDK appends an identifier, so `bsk-…-0930` shows up as
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
   default 10 within minutes. If more than one build matches (a shared account), use the
@@ -507,6 +509,8 @@ After the report, offer three or four of these, one line each, then wait for the
 | Real Android: `PlaywrightException: Cannot find parent object android@… to create android-device@…` at `launch()` | A standard `launch()` can't drive real Android, though the device session still starts (`error` / `ABRUPT_CLOSE`): remove the Android row (B1) |
 | Gradle: only one platform gets a session and the output shows `java.io.EOFException … GradleWorkerMain` | The agent is on Gradle's `test` task, where the SDK can drive one platform. Use the `browserstackTest` task from B2 |
 | Gradle 9: `Failed to load JUnit Platform … including the JUnit Platform launcher` | Gradle 9 no longer adds the launcher; it is the project's build, not BrowserStack. `browserstackTest` brings it in through `junit-platform-console`. For `gradle test` the project needs `testRuntimeOnly 'org.junit.platform:junit-platform-launcher'` (show it as a diff and ask) |
+| No output for several minutes, and the API shows no session yet for one platform | The browser connection is slow to start (Ventura Chrome took 3 to 5 minutes on 26 Nov 2026) or has hung. Wait up to 10 minutes; then press Ctrl-C once. Maven then exits 130 with no summary, and the build link is in `log/browserstack-javaagent.log` |
+| `Tests run: 0` with `BUILD SUCCESS`, or an empty "View build" link | Nothing reached BrowserStack (for example the disk filled up during the run): fix the cause and re-run; never report it as a pass |
 
 ## Quick reference
 

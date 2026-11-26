@@ -332,10 +332,12 @@ print a link when no session was created. Check the BrowserStack API yourself:
 BUILD_NAME="<the buildName you set>"
 curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds.json?limit=100" \
   | python3 -c "import sys,json; n=sys.argv[1]; [print(b['automation_build']['hashed_id'], b['automation_build']['name']) for b in json.load(sys.stdin) if b['automation_build']['name'].startswith(n)]" "$BUILD_NAME"
-curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds/<hashed_id>/sessions.json" \
+curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds/<hashed_id>/sessions.json?limit=100" \
   | python3 -c "import sys,json; [print(s['automation_session'].get('os'), s['automation_session'].get('browser') or '', s['automation_session'].get('device') or '', '|', s['automation_session']['status'], '|', s['automation_session'].get('name')) for s in json.load(sys.stdin)]"
 ```
 
+- The sessions call returns 10 sessions unless you pass `limit` (as above); for builds with more
+  than 100 sessions, page on with `&offset=100`.
 - Match the build by **prefix**: the SDK appends an identifier, so `bsk-…-0930` shows up as
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
   default 10 within minutes. If more than one build matches (a shared account), use the
@@ -354,8 +356,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
   A session whose only failure was a `beforeAll` hook is also left `done` and unnamed: report the
   runner's hook error for that platform.
-  - If the run's sessions show `done`, mark each from the test results (`dotnet test` prints each
-    test's outcome; one test per platform maps one-to-one) as shown below.
+  - If the run's sessions show `done`, mark each from the test results (`dotnet test` may print only one
+    platform's failure: every platform's result is in `log/adapter.log`; one test per platform maps one-to-one) as shown below.
 - To mark a session yourself from the test runner's own result (use the assertion message as the
   reason for a failure, and say in your report that you marked it):
   ```bash
@@ -440,7 +442,8 @@ After the report, offer three or four of these, one line each, then wait for the
 | `dotnet test` finishes with 0 tests run, or runs locally | An outdated `BrowserStack.TestAdapter`: update it to the current release (B2, step 1) |
 | `You must install or update .NET to run this application` | The project targets a .NET version that isn't installed: run with `-f <installed version>` |
 | Android: `Unable to maximize window` | `Maximize()` on a real phone: guard it as in B2, step 3 |
-| Sample build: some platforms fail with `NoSuchElementException` on `//*[@id="1"]/p` | The sample has no waits: re-run once with a new build name. If the same platforms fail again (Windows 10 Edge and the Galaxy S22 Ultra did on 26 Nov), it is the sample on those platforms: report it and offer the user's own tests (see "When sessions failed") |
+| Sample build: some or all platforms fail with `NoSuchElementException` on `//*[@id="1"]/p` | The sample has no waits (on 26 Nov it failed on 2 of 3 platforms in two runs and on all 3 in a third). If only some failed, re-run once with a new build name; if the same platforms fail again, or all failed, it is the sample: report it and offer the user's own tests (see "When sessions failed") |
+| `No test matches the given testcase filter` at the end of the output | Harmless: the filter is also applied to the solution's other test assemblies. Judge the run by the API |
 | Test host crashed with `JsonReaderException … AtomicFile`, or the output shows another project's tests | Another .NET SDK run is active on this machine (they share `$TMPDIR/.browserstack/`, which also holds a copy of the credentials): run one at a time, and trust the API |
 | iOS: `FindElements` returns nothing right after a page load | Real iOS Safari doesn't apply the implicit wait to `FindElements`: the test needs an explicit wait (ask before changing it) |
 | NuGet restore fails | Check access to `api.nuget.org` (corporate proxy or feed settings) |

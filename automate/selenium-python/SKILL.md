@@ -191,7 +191,7 @@ git check-ignore -q log/sdk-cli.log || echo 'log/' >> .gitignore
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt   # includes the current BrowserStack SDK from BrowserStack's server
+.venv/bin/pip install --no-cache-dir -r requirements.txt   # --no-cache-dir: fetch the current SDK, not an older cached copy
 .venv/bin/browserstack-sdk python ./tests/test.py
 ```
 
@@ -233,7 +233,7 @@ Note these in a short Assessment block at the top of your plan:
    PyPI's `browserstack-sdk` lags well behind, so don't install it from there:
    ```bash
    python3 -m venv .venv
-   .venv/bin/pip install "selenium==<their version>" "pytest==<their version>" \
+   .venv/bin/pip install --no-cache-dir "selenium==<their version>" "pytest==<their version>" \
      https://sdk-assets.browserstack.com/python/browserstack_sdk-latest.tar.gz
    .venv/bin/python -c "import browserstack_sdk._version as v; print(v.__version__)"
    ```
@@ -342,10 +342,12 @@ print a link when no session was created. Check the BrowserStack API yourself:
 BUILD_NAME="<the buildName you set>"
 curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds.json?limit=100" \
   | python3 -c "import sys,json; n=sys.argv[1]; [print(b['automation_build']['hashed_id'], b['automation_build']['name']) for b in json.load(sys.stdin) if b['automation_build']['name'].startswith(n)]" "$BUILD_NAME"
-curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds/<hashed_id>/sessions.json" \
+curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds/<hashed_id>/sessions.json?limit=100" \
   | python3 -c "import sys,json; [print(s['automation_session'].get('os'), s['automation_session'].get('browser') or '', s['automation_session'].get('device') or '', '|', s['automation_session']['status'], '|', s['automation_session'].get('name')) for s in json.load(sys.stdin)]"
 ```
 
+- The sessions call returns 10 sessions unless you pass `limit` (as above); for builds with more
+  than 100 sessions, page on with `&offset=100`.
 - Match the build by **prefix**: the SDK appends an identifier, so `bsk-…-0930` shows up as
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
   default 10 within minutes. If more than one build matches (a shared account), use the
@@ -460,7 +462,7 @@ A2 to A4.
 
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone -b main https://github.com/browserstack/python-selenium-browserstack.git && cd python-selenium-browserstack && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/browserstack-sdk python ./tests/test.py` |
+| Sample build | `git clone -b main https://github.com/browserstack/python-selenium-browserstack.git && cd python-selenium-browserstack && python3 -m venv .venv && .venv/bin/pip install --no-cache-dir -r requirements.txt && .venv/bin/browserstack-sdk python ./tests/test.py` |
 | Your tests (pytest) | `.venv/bin/browserstack-sdk pytest tests/` |
 | Install the current SDK | `pip install https://sdk-assets.browserstack.com/python/browserstack_sdk-latest.tar.gz` |
 | SDK version installed | `python -c "import browserstack_sdk._version as v; print(v.__version__)"` |

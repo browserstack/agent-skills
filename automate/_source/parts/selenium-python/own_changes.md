@@ -3,7 +3,7 @@
    PyPI's `browserstack-sdk` lags well behind, so don't install it from there:
    ```bash
    python3 -m venv .venv
-   .venv/bin/pip install "selenium==<their version>" "pytest==<their version>" \
+   .venv/bin/pip install --no-cache-dir "selenium==<their version>" "pytest==<their version>" \
      https://sdk-assets.browserstack.com/python/browserstack_sdk-latest.tar.gz
    .venv/bin/python -c "import browserstack_sdk._version as v; print(v.__version__)"
    ```
