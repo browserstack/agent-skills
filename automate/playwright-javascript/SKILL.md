@@ -116,7 +116,7 @@ the prompt again.
    - For the sample build: read the platforms it ships with, without cloning yet, and check any real
      devices against the live catalog (step A3):
      ```bash
-     curl -fsSL https://raw.githubusercontent.com/browserstack/node-js-playwright-browserstack/main/browserstack.yml
+     curl -fsSL https://raw.githubusercontent.com/browserstack/node-js-playwright-browserstack/tra/browserstack.yml
      ```
    - For your own tests: the project assessment in Path B, step B1.
 3. **Ask only what you still need, in one message.** The sample build usually needs nothing. For
@@ -139,8 +139,9 @@ the prompt again.
 
 ## Path A: sample build
 
-This runs BrowserStack's official Playwright JavaScript sample (`browserstack/node-js-playwright-browserstack`, branch
-`main`), the same one the BrowserStack docs use, on the platforms it ships with.
+This runs BrowserStack's official Playwright JavaScript sample, the one the in-product Quick Integration
+Guide uses (https://www.browserstack.com/docs/onboarding-cad/playwright-qig/nodejs-sdk/getting-started): `browserstack/node-js-playwright-browserstack`, branch `tra`, on the
+platforms it ships with.
 
 ### A1. Prerequisites
 
@@ -154,7 +155,7 @@ If any is missing, tell the user what to install and stop.
 ### A2. Clone the official sample into a new folder
 
 ```bash
-git clone -b main https://github.com/browserstack/node-js-playwright-browserstack.git
+git clone -b tra https://github.com/browserstack/node-js-playwright-browserstack.git
 cd node-js-playwright-browserstack
 ```
 
@@ -194,12 +195,21 @@ npm install
 npm run sample-test
 ```
 
-`npm run sample-test` runs `npx browserstack-node-sdk playwright test --config=./playwright.config.js`:
-the SDK runs the sample spec (pages on the-internet.herokuapp.com) on every platform in
-`browserstack.yml` (desktop Chrome, WebKit and Firefox), in parallel, and reports pass/fail to
-BrowserStack. `npm install` also updates the tracked `package-lock.json`, and its `postinstall`
-step updates the SDK to the latest version: list both in the plan. "Uh-oh! We detected some
-issues … SDK-GEN-004" about `GLOBAL_AGENT_HTTP_PROXY` is harmless.
+`npm run sample-test` runs `npx browserstack-node-sdk playwright test --config=./playwright.config.js`
+on every platform in `browserstack.yml` (desktop Chrome, WebKit and Firefox). This branch is a
+demo for BrowserStack's test reporting: its specs in `moduleA`, `moduleB` and `moduleC` (pages on
+the-internet.herokuapp.com) include tests named "always failing" and "flaky" that fail on purpose,
+next to passing ones and a retry example. Say so in the plan, and in the report count those as
+expected failures (see "When sessions failed"). Playwright starts a new worker, and with it a new
+session, after every failed test, so expect 10 to 15 sessions per platform. The deliberate
+failures show these errors: `NullPointerError: Cannot read property 'foo' of null`, a wrong
+`toHaveTitle`, `Test failed, retrying...` (the retry example) and, for the flaky tests, `Test
+timeout of 10000ms exceeded`. On 26 Nov 2026, Firefox also hit `"beforeAll" hook timeout of
+10000ms exceeded` in every worker (the sample's 10 s limit is tight for remote Firefox), and two
+WebKit connections hung: those are not part of the demo, so report them as real failures. `npm install` also updates the tracked
+`package-lock.json`, and its `postinstall` step updates the SDK to the latest version: list both in
+the plan. "Uh-oh! We detected some issues … SDK-GEN-004" about `GLOBAL_AGENT_HTTP_PROXY` is
+harmless.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -355,7 +365,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
   default 10 within minutes. If more than one build matches (a shared account), use the
   hashed_id from the SDK's `View build on BrowserStack dashboard` line, or the build whose
-  sessions match your platforms and start time.
+  sessions match your platforms and start time. If nothing matches after a long run, take the
+  hashed_id from that line too, or page on with `&offset=100`, `&offset=200`.
 - **No matching build, or 0 sessions** → the tests did not reach BrowserStack. Read the SDK's own
   logs in the `log/` folder next to `browserstack.yml` (mask the key first) before guessing; then
   see Troubleshooting. Report what stopped the run and the fix, without a dashboard link.
@@ -366,6 +377,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   `failed` with the runner's message (below) and say so in the report. The SDK has been seen
   marking a timed-out test `passed`.
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
+  A session whose only failure was a `beforeAll` hook is also left `done` and unnamed: report the
+  runner's hook error for that platform.
   - The SDK marks desktop, Android and real iPhone sessions (iPhone verified with SDK 1.80.4, Nov
     2026); an iPhone build's own status can still read `done`, so report from the sessions. Every
     session is left `done` when the SDK prints `Binary CLI failed to start — running in direct
@@ -400,7 +413,8 @@ Dashboard : https://automate.browserstack.com/dashboard/v2/builds/<hashed_id>
 ```
 
 Test runners count tests, not sessions: a test that fails on one platform shows as one failed
-test. The API count above is the result. Each session on the dashboard has its video and text
+test. When a run has many tests per platform and each failed test ends its session (Playwright
+starts a new worker after a failure), lead the Platforms line with the runner's test counts. The API count above is the result. Each session on the dashboard has its video and text
 logs, plus network and console logs when `browserstack.yml` turns them on.
 
 ## When sessions failed
@@ -416,6 +430,11 @@ Report failures as results. Don't change test code to make them pass unless the 
     sample has no wait there. Re-run once with a new build name and report both builds. If the
     same platforms fail again, the sample fails there every time: say so, and offer to run the
     user's own tests instead of re-running again.
+- **Tests that fail on purpose:** some samples include tests named "always failing" or "flaky"
+  to demonstrate BrowserStack's test reporting. Report those as expected, not as a setup
+  problem, and judge the run by the other tests. Judge by the error, not only the name: a hook
+  timeout, an interrupted test or tests that did not run are real failures even in a test named
+  "flaky". For each platform give passed, failed on purpose, other failures and did not run.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
   platform (often real iOS Safari), say it is specific to that platform and offer to look at it
   separately. Don't edit the test without the user's OK.
@@ -453,9 +472,11 @@ After the report, offer three or four of these, one line each, then wait for the
 | `configLoader.js doesn't exist` before any session | The SDK is older than the project's Playwright: update `browserstack-node-sdk`; if needed pin Playwright to `1.64.1` (B2, step 2) |
 | `Binary CLI failed to start — running in direct flow` | The SDK's helper timed out; tests still run but sessions are left `done`. Re-run once, then mark from the runner's result |
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
-| Sample build: every platform fails at `getByRole('link', { name: 'Dropdown' })` with a strict-mode violation | the-internet.herokuapp.com now has three "Dropdown" links, so the sample's locator matches more than one. It is the sample, not your setup: report it as in "When sessions failed" |
 | Tests pass but the API shows no build | Run through `npx browserstack-node-sdk playwright test`, and check for a custom `launch()` or `connect()` (B1) |
 | Real Android Chrome: `click()` times out with "<element> intercepts pointer events", and the intercepting element changes on every retry | The page is wider than the phone screen, so Chrome scrolls only the visible area and Playwright checks the wrong spot (seen on Galaxy S23 and Pixel 9, Nov 2026; desktop and iPhone unaffected). Report it as Android-specific. With the user's OK, scroll the page to the element before the click (`await el.evaluate(e => window.scrollTo(0, e.getBoundingClientRect().top + scrollY - 120))`) or use `click({ force: true })` for that click on Android only; the lasting fix is removing the page's horizontal overflow |
+| Sample build: tests named "always failing …" fail and "flaky …" tests pass or fail at random | Expected: the Quick Integration Guide's sample is a test-reporting demo. Report those as expected failures and judge the run by the other tests |
+| Sample build, Firefox: `"beforeAll" hook timeout of 10000ms exceeded`, then `Target page, context or browser has been closed`; sessions `done` | The sample's `beforeAll` (load the page, then wait 3 s) runs past its 10 s timeout on remote Firefox. A real failure, not one of the demo's: report it; don't edit the sample |
+| Output stops for 5 minutes or more and the API shows no new session for that platform | A browser connection hung (seen on macOS Ventura WebKit, Nov 2026). Press Ctrl-C once: the SDK still closes the build and prints the dashboard link. Report those tests as interrupted or not run |
 
 ## Quick reference
 
@@ -464,7 +485,7 @@ A2 to A4.
 
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone https://github.com/browserstack/node-js-playwright-browserstack.git && cd node-js-playwright-browserstack && npm install && npm run sample-test` |
+| Sample build | `git clone -b tra https://github.com/browserstack/node-js-playwright-browserstack.git && cd node-js-playwright-browserstack && npm install && npm run sample-test` |
 | Your tests | `npx browserstack-node-sdk playwright test` |
 | Current SDK version | `npm view browserstack-node-sdk version` |
 | Docs | https://www.browserstack.com/docs/automate/playwright/getting-started/nodejs |

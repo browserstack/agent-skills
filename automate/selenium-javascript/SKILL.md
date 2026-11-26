@@ -116,7 +116,7 @@ the prompt again.
    - For the sample build: read the platforms it ships with, without cloning yet, and check any real
      devices against the live catalog (step A3):
      ```bash
-     curl -fsSL https://raw.githubusercontent.com/browserstack/mocha-browserstack/master/browserstack.yml
+     curl -fsSL https://raw.githubusercontent.com/browserstack/jest-js-browserstack/main/browserstack.yml
      ```
    - For your own tests: the project assessment in Path B, step B1.
 3. **Ask only what you still need, in one message.** The sample build usually needs nothing. For
@@ -139,8 +139,9 @@ the prompt again.
 
 ## Path A: sample build
 
-This runs BrowserStack's official Selenium JavaScript sample (`browserstack/mocha-browserstack`, branch
-`master`), the same one the BrowserStack docs use, on the platforms it ships with.
+This runs BrowserStack's official Selenium JavaScript sample, the one the in-product Quick Integration
+Guide uses (https://www.browserstack.com/docs/onboarding-cad/nodejs-sdk/getting-started): `browserstack/jest-js-browserstack`, branch `main`, on the
+platforms it ships with.
 
 ### A1. Prerequisites
 
@@ -154,11 +155,11 @@ If any is missing, tell the user what to install and stop.
 ### A2. Clone the official sample into a new folder
 
 ```bash
-git clone -b master https://github.com/browserstack/mocha-browserstack.git
-cd mocha-browserstack
+git clone -b main https://github.com/browserstack/jest-js-browserstack.git
+cd jest-js-browserstack
 ```
 
-If `mocha-browserstack` already exists, clone into `mocha-browserstack-$(date +%Y%m%d-%H%M%S)` instead.
+If `jest-js-browserstack` already exists, clone into `jest-js-browserstack-$(date +%Y%m%d-%H%M%S)` instead.
 Never overwrite a folder the user may have changed.
 
 ### A3. Point `browserstack.yml` at this run
@@ -194,12 +195,13 @@ npm install
 npm run sample-test
 ```
 
-`npm run sample-test` runs the Mocha test `test/sample_test.js` through `browserstack-node-sdk`
-(adds a product to the cart on bstackdemo.com and checks it is there) on every platform in
-`browserstack.yml`, in parallel, and reports pass/fail to BrowserStack. `npm install` also
-updates the tracked `package-lock.json`, and its `postinstall` step updates the SDK to the latest
-version: list both in the plan. `EBADENGINE` warnings and `[UNDICI-EHPA] Warning:
-EnvHttpProxyAgent is experimental` are harmless.
+`npm run sample-test` runs `browserstack-node-sdk jest src/sample.test.js`: the SDK runs the two
+Jest tests (a sign-in with a locked account that expects the "Your account has been locked." error,
+and adding a product to the cart on bstackdemo.com) on every platform in `browserstack.yml`, in
+parallel, and reports pass/fail to BrowserStack. `npm install` also updates the tracked
+`package-lock.json`, and its `postinstall` step updates the SDK to the latest version: list both
+in the plan. `EBADENGINE` warnings and `[UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental`
+are harmless.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -342,7 +344,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
   default 10 within minutes. If more than one build matches (a shared account), use the
   hashed_id from the SDK's `View build on BrowserStack dashboard` line, or the build whose
-  sessions match your platforms and start time.
+  sessions match your platforms and start time. If nothing matches after a long run, take the
+  hashed_id from that line too, or page on with `&offset=100`, `&offset=200`.
 - **No matching build, or 0 sessions** → the tests did not reach BrowserStack. Read the SDK's own
   logs in the `log/` folder next to `browserstack.yml` (mask the key first) before guessing; then
   see Troubleshooting. Report what stopped the run and the fix, without a dashboard link.
@@ -353,6 +356,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   `failed` with the runner's message (below) and say so in the report. The SDK has been seen
   marking a timed-out test `passed`.
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
+  A session whose only failure was a `beforeAll` hook is also left `done` and unnamed: report the
+  runner's hook error for that platform.
   - Mocha sessions are marked and named by the SDK. If a Jest run's sessions show `done`, mark
     them from the runner's result as shown below.
 - To mark a session yourself from the test runner's own result (use the assertion message as the
@@ -376,7 +381,7 @@ what the tests do and where they came from:
 ============================================================
 BrowserStack Automate — Run Complete
 ------------------------------------------------------------
-Ran       : [Sample build: browserstack/mocha-browserstack] or [Your tests: <path>]
+Ran       : [Sample build: browserstack/jest-js-browserstack] or [Your tests: <path>]
 Result    : <N> of <M> sessions passed (from the BrowserStack API)
 Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total>
 Build     : <build name>
@@ -385,7 +390,8 @@ Dashboard : https://automate.browserstack.com/dashboard/v2/builds/<hashed_id>
 ```
 
 Test runners count tests, not sessions: a test that fails on one platform shows as one failed
-test. The API count above is the result. Each session on the dashboard has its video and text
+test. When a run has many tests per platform and each failed test ends its session (Playwright
+starts a new worker after a failure), lead the Platforms line with the runner's test counts. The API count above is the result. Each session on the dashboard has its video and text
 logs, plus network and console logs when `browserstack.yml` turns them on.
 
 ## When sessions failed
@@ -401,6 +407,11 @@ Report failures as results. Don't change test code to make them pass unless the 
     sample has no wait there. Re-run once with a new build name and report both builds. If the
     same platforms fail again, the sample fails there every time: say so, and offer to run the
     user's own tests instead of re-running again.
+- **Tests that fail on purpose:** some samples include tests named "always failing" or "flaky"
+  to demonstrate BrowserStack's test reporting. Report those as expected, not as a setup
+  problem, and judge the run by the other tests. Judge by the error, not only the name: a hook
+  timeout, an interrupted test or tests that did not run are real failures even in a test named
+  "flaky". For each platform give passed, failed on purpose, other failures and did not run.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
   platform (often real iOS Safari), say it is specific to that platform and offer to look at it
   separately. Don't edit the test without the user's OK.
@@ -442,7 +453,7 @@ A2 to A4.
 
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone https://github.com/browserstack/mocha-browserstack.git && cd mocha-browserstack && npm install && npm run sample-test` |
+| Sample build | `git clone https://github.com/browserstack/jest-js-browserstack.git && cd jest-js-browserstack && npm install && npm run sample-test` |
 | Your tests (Mocha) | `npx browserstack-node-sdk mocha test/*.js --timeout 60000` |
 | Your tests (Jest) | `npx browserstack-node-sdk jest` |
 | Current SDK version | `npm view browserstack-node-sdk version` |

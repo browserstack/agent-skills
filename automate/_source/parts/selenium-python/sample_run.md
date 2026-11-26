@@ -1,7 +1,7 @@
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt   # includes the current BrowserStack SDK from BrowserStack's server
-.venv/bin/browserstack-sdk ./tests/test.py
+.venv/bin/browserstack-sdk python ./tests/test.py
 ```
 
 On Windows use `.venv\Scripts\pip` and `.venv\Scripts\browserstack-sdk`. The SDK runs

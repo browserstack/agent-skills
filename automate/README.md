@@ -2,16 +2,16 @@
 
 Each skill takes a coding agent from one pasted prompt to a build on the BrowserStack Automate dashboard: BrowserStack's official sample build, or your own tests with no changes to your test logic. The agent checks your credentials, shows a plan, waits for your OK, runs the build and returns the dashboard link.
 
-| Framework | Language | Runs on | Sample repo | Skill |
+| Framework | Language | Runs on | Sample repo (as in the Quick Integration Guide) | Skill |
 | --- | --- | --- | --- | --- |
-| Selenium | Java | real desktop browsers and real mobile devices | [`vanilla-java-browserstack`](https://github.com/browserstack/vanilla-java-browserstack/tree/sdk-sample) | [`selenium-java`](selenium-java/SKILL.md) |
-| Selenium | Python | real desktop browsers and real mobile devices | [`python-selenium-browserstack`](https://github.com/browserstack/python-selenium-browserstack/tree/main) | [`selenium-python`](selenium-python/SKILL.md) |
-| Selenium | JavaScript | real desktop browsers and real mobile devices | [`mocha-browserstack`](https://github.com/browserstack/mocha-browserstack/tree/master) | [`selenium-javascript`](selenium-javascript/SKILL.md) |
-| Selenium | C# | real desktop browsers and real mobile devices | [`nunit-browserstack`](https://github.com/browserstack/nunit-browserstack/tree/master) | [`selenium-csharp`](selenium-csharp/SKILL.md) |
-| Playwright | JavaScript | real desktop browsers, with real Android and iPhone on request | [`node-js-playwright-browserstack`](https://github.com/browserstack/node-js-playwright-browserstack/tree/main) | [`playwright-javascript`](playwright-javascript/SKILL.md) |
-| Playwright | Python | real desktop browsers, with a real iPhone on request | [`pytest-playwright-browserstack`](https://github.com/browserstack/pytest-playwright-browserstack/tree/main) | [`playwright-python`](playwright-python/SKILL.md) |
-| Playwright | Java | real desktop browsers, with a real iPhone on request | [`java-playwright-browserstack`](https://github.com/browserstack/java-playwright-browserstack/tree/main) | [`playwright-java`](playwright-java/SKILL.md) |
-| Playwright | C# | real desktop browsers, with a real iPhone on request | [`csharp-playwright-browserstack`](https://github.com/browserstack/csharp-playwright-browserstack/tree/main) | [`playwright-csharp`](playwright-csharp/SKILL.md) |
+| Selenium | Java | real desktop browsers and real mobile devices | [`vanilla-java-browserstack@sdk-sample`](https://github.com/browserstack/vanilla-java-browserstack/tree/sdk-sample) ([guide](https://www.browserstack.com/docs/onboarding-cad/java-sdk/getting-started)) | [`selenium-java`](selenium-java/SKILL.md) |
+| Selenium | Python | real desktop browsers and real mobile devices | [`python-selenium-browserstack@main`](https://github.com/browserstack/python-selenium-browserstack/tree/main) ([guide](https://www.browserstack.com/docs/onboarding-cad/python-sdk/getting-started)) | [`selenium-python`](selenium-python/SKILL.md) |
+| Selenium | JavaScript | real desktop browsers and real mobile devices | [`jest-js-browserstack@main`](https://github.com/browserstack/jest-js-browserstack/tree/main) ([guide](https://www.browserstack.com/docs/onboarding-cad/nodejs-sdk/getting-started)) | [`selenium-javascript`](selenium-javascript/SKILL.md) |
+| Selenium | C# | real desktop browsers and real mobile devices | [`nunit-browserstack@master`](https://github.com/browserstack/nunit-browserstack/tree/master) ([guide](https://www.browserstack.com/docs/onboarding-cad/c-sharp-sdk/getting-started)) | [`selenium-csharp`](selenium-csharp/SKILL.md) |
+| Playwright | JavaScript | real desktop browsers, with real Android and iPhone on request | [`node-js-playwright-browserstack@tra`](https://github.com/browserstack/node-js-playwright-browserstack/tree/tra) ([guide](https://www.browserstack.com/docs/onboarding-cad/playwright-qig/nodejs-sdk/getting-started)) | [`playwright-javascript`](playwright-javascript/SKILL.md) |
+| Playwright | Python | real desktop browsers, with a real iPhone on request | [`pytest-playwright-browserstack@main`](https://github.com/browserstack/pytest-playwright-browserstack/tree/main) ([guide](https://www.browserstack.com/docs/onboarding-cad/playwright-qig/python-sdk/getting-started)) | [`playwright-python`](playwright-python/SKILL.md) |
+| Playwright | Java | real desktop browsers, with a real iPhone on request | [`java-playwright-browserstack@main`](https://github.com/browserstack/java-playwright-browserstack/tree/main) ([guide](https://www.browserstack.com/docs/onboarding-cad/playwright-qig/java-sdk/getting-started)) | [`playwright-java`](playwright-java/SKILL.md) |
+| Playwright | C# | real desktop browsers, with a real iPhone on request | [`csharp-playwright-browserstack@main`](https://github.com/browserstack/csharp-playwright-browserstack/tree/main) ([guide](https://www.browserstack.com/docs/onboarding-cad/playwright-qig/c-sharp-sdk/getting-started)) | [`playwright-csharp`](playwright-csharp/SKILL.md) |
 
 ## Prompts
 

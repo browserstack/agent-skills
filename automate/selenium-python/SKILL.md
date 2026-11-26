@@ -139,8 +139,9 @@ the prompt again.
 
 ## Path A: sample build
 
-This runs BrowserStack's official Selenium Python sample (`browserstack/python-selenium-browserstack`, branch
-`main`), the same one the BrowserStack docs use, on the platforms it ships with.
+This runs BrowserStack's official Selenium Python sample, the one the in-product Quick Integration
+Guide uses (https://www.browserstack.com/docs/onboarding-cad/python-sdk/getting-started): `browserstack/python-selenium-browserstack`, branch `main`, on the
+platforms it ships with.
 
 ### A1. Prerequisites
 
@@ -191,7 +192,7 @@ git check-ignore -q log/sdk-cli.log || echo 'log/' >> .gitignore
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt   # includes the current BrowserStack SDK from BrowserStack's server
-.venv/bin/browserstack-sdk ./tests/test.py
+.venv/bin/browserstack-sdk python ./tests/test.py
 ```
 
 On Windows use `.venv\Scripts\pip` and `.venv\Scripts\browserstack-sdk`. The SDK runs
@@ -349,7 +350,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   `bsk-…-0930  1` (the number varies). Ask for `limit=100`, since a busy account fills the
   default 10 within minutes. If more than one build matches (a shared account), use the
   hashed_id from the SDK's `View build on BrowserStack dashboard` line, or the build whose
-  sessions match your platforms and start time.
+  sessions match your platforms and start time. If nothing matches after a long run, take the
+  hashed_id from that line too, or page on with `&offset=100`, `&offset=200`.
 - **No matching build, or 0 sessions** → the tests did not reach BrowserStack. Read the SDK's own
   logs in the `log/` folder next to `browserstack.yml` (mask the key first) before guessing; then
   see Troubleshooting. Report what stopped the run and the fix, without a dashboard link.
@@ -360,6 +362,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   `failed` with the runner's message (below) and say so in the report. The SDK has been seen
   marking a timed-out test `passed`.
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
+  A session whose only failure was a `beforeAll` hook is also left `done` and unnamed: report the
+  runner's hook error for that platform.
   - pytest sessions are marked and named by the SDK. Plain scripts and unittest may not be: if
     their sessions show `done`, mark them from the runner's result as shown below. (The official
     sample reports its own status.)
@@ -393,7 +397,8 @@ Dashboard : https://automate.browserstack.com/dashboard/v2/builds/<hashed_id>
 ```
 
 Test runners count tests, not sessions: a test that fails on one platform shows as one failed
-test. The API count above is the result. Each session on the dashboard has its video and text
+test. When a run has many tests per platform and each failed test ends its session (Playwright
+starts a new worker after a failure), lead the Platforms line with the runner's test counts. The API count above is the result. Each session on the dashboard has its video and text
 logs, plus network and console logs when `browserstack.yml` turns them on.
 
 ## When sessions failed
@@ -409,6 +414,11 @@ Report failures as results. Don't change test code to make them pass unless the 
     sample has no wait there. Re-run once with a new build name and report both builds. If the
     same platforms fail again, the sample fails there every time: say so, and offer to run the
     user's own tests instead of re-running again.
+- **Tests that fail on purpose:** some samples include tests named "always failing" or "flaky"
+  to demonstrate BrowserStack's test reporting. Report those as expected, not as a setup
+  problem, and judge the run by the other tests. Judge by the error, not only the name: a hook
+  timeout, an interrupted test or tests that did not run are real failures even in a test named
+  "flaky". For each platform give passed, failed on purpose, other failures and did not run.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
   platform (often real iOS Safari), say it is specific to that platform and offer to look at it
   separately. Don't edit the test without the user's OK.
@@ -450,7 +460,7 @@ A2 to A4.
 
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone -b main https://github.com/browserstack/python-selenium-browserstack.git && cd python-selenium-browserstack && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/browserstack-sdk ./tests/test.py` |
+| Sample build | `git clone -b main https://github.com/browserstack/python-selenium-browserstack.git && cd python-selenium-browserstack && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/browserstack-sdk python ./tests/test.py` |
 | Your tests (pytest) | `.venv/bin/browserstack-sdk pytest tests/` |
 | Install the current SDK | `pip install https://sdk-assets.browserstack.com/python/browserstack_sdk-latest.tar.gz` |
 | SDK version installed | `python -c "import browserstack_sdk._version as v; print(v.__version__)"` |

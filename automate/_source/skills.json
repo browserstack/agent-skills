@@ -13,7 +13,8 @@
     "platform_kind": "real desktop browsers and real mobile devices",
     "own_platforms_yaml": "  - os: Windows\n    osVersion: 11\n    browserName: chrome\n    browserVersion: latest\n  - os: OS X\n    osVersion: Sequoia\n    browserName: safari\n    browserVersion: latest\n  - deviceName: Samsung Galaxy S23\n    osVersion: 13.0\n    browserName: chrome\n  - deviceName: iPhone 15\n    osVersion: 17\n    browserName: safari",
     "own_platforms_text": "Windows 11 Chrome, macOS Sequoia Safari, a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari)",
-    "sample_subdir": ""
+    "sample_subdir": "",
+    "qig_url": "https://www.browserstack.com/docs/onboarding-cad/java-sdk/getting-started"
   },
   {
     "folder": "selenium-python",
@@ -29,7 +30,8 @@
     "platform_kind": "real desktop browsers and real mobile devices",
     "own_platforms_yaml": "  - os: Windows\n    osVersion: 11\n    browserName: chrome\n    browserVersion: latest\n  - os: OS X\n    osVersion: Sequoia\n    browserName: safari\n    browserVersion: latest\n  - deviceName: Samsung Galaxy S23\n    osVersion: 13.0\n    browserName: chrome\n  - deviceName: iPhone 15\n    osVersion: 17\n    browserName: safari",
     "own_platforms_text": "Windows 11 Chrome, macOS Sequoia Safari, a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari)",
-    "sample_subdir": ""
+    "sample_subdir": "",
+    "qig_url": "https://www.browserstack.com/docs/onboarding-cad/python-sdk/getting-started"
   },
   {
     "folder": "selenium-javascript",
@@ -40,12 +42,13 @@
     "project_signal": "`package.json` that depends on `selenium-webdriver` (Mocha or Jest)",
     "triggers": "Selenium with JavaScript or Node.js, selenium-webdriver, Mocha, Jest, browserstack-node-sdk or browserstack.yml",
     "toolchain_check": "`node -v` (20+), `npm -v`, `git --version`",
-    "sample_repo": "mocha-browserstack",
-    "sample_branch": "master",
+    "sample_repo": "jest-js-browserstack",
+    "sample_branch": "main",
     "platform_kind": "real desktop browsers and real mobile devices",
     "own_platforms_yaml": "  - os: Windows\n    osVersion: 11\n    browserName: chrome\n    browserVersion: latest\n  - os: OS X\n    osVersion: Sequoia\n    browserName: safari\n    browserVersion: latest\n  - deviceName: Samsung Galaxy S23\n    osVersion: 13.0\n    browserName: chrome\n  - deviceName: iPhone 15\n    osVersion: 17\n    browserName: safari",
     "own_platforms_text": "Windows 11 Chrome, macOS Sequoia Safari, a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari)",
-    "sample_subdir": ""
+    "sample_subdir": "",
+    "qig_url": "https://www.browserstack.com/docs/onboarding-cad/nodejs-sdk/getting-started"
   },
   {
     "folder": "selenium-csharp",
@@ -61,7 +64,8 @@
     "sample_subdir": "/NUnit-BrowserStack",
     "platform_kind": "real desktop browsers and real mobile devices",
     "own_platforms_yaml": "  - os: Windows\n    osVersion: 11\n    browserName: chrome\n    browserVersion: latest\n  - os: OS X\n    osVersion: Sequoia\n    browserName: safari\n    browserVersion: latest\n  - deviceName: Samsung Galaxy S23\n    osVersion: 13.0\n    browserName: chrome\n  - deviceName: iPhone 15\n    osVersion: 17\n    browserName: safari",
-    "own_platforms_text": "Windows 11 Chrome, macOS Sequoia Safari, a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari)"
+    "own_platforms_text": "Windows 11 Chrome, macOS Sequoia Safari, a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari)",
+    "qig_url": "https://www.browserstack.com/docs/onboarding-cad/c-sharp-sdk/getting-started"
   },
   {
     "folder": "playwright-javascript",
@@ -73,11 +77,12 @@
     "triggers": "Playwright with JavaScript or TypeScript, @playwright/test, playwright.config, browserstack-node-sdk or browserstack.yml",
     "toolchain_check": "`node -v` (20+), `npm -v`, `git --version`",
     "sample_repo": "node-js-playwright-browserstack",
-    "sample_branch": "main",
+    "sample_branch": "tra",
     "platform_kind": "real desktop browsers, with real Android and iPhone on request",
     "own_platforms_yaml": "  - os: Windows\n    osVersion: 11\n    browserName: chrome\n    browserVersion: latest\n  - os: OS X\n    osVersion: Sequoia\n    browserName: playwright-webkit\n    browserVersion: latest\n  - os: Windows\n    osVersion: 11\n    browserName: playwright-firefox\n    browserVersion: latest",
     "own_platforms_text": "Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox",
-    "sample_subdir": ""
+    "sample_subdir": "",
+    "qig_url": "https://www.browserstack.com/docs/onboarding-cad/playwright-qig/nodejs-sdk/getting-started"
   },
   {
     "folder": "playwright-python",
@@ -93,7 +98,8 @@
     "sample_subdir": "",
     "platform_kind": "real desktop browsers, with a real iPhone on request",
     "own_platforms_yaml": "  - os: Windows\n    osVersion: 11\n    browserName: chrome\n    browserVersion: latest\n  - os: OS X\n    osVersion: Sequoia\n    browserName: playwright-webkit\n    browserVersion: latest\n  - os: Windows\n    osVersion: 11\n    browserName: playwright-firefox\n    browserVersion: latest",
-    "own_platforms_text": "Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox"
+    "own_platforms_text": "Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox",
+    "qig_url": "https://www.browserstack.com/docs/onboarding-cad/playwright-qig/python-sdk/getting-started"
   },
   {
     "folder": "playwright-java",
@@ -109,7 +115,8 @@
     "sample_subdir": "",
     "platform_kind": "real desktop browsers, with a real iPhone on request",
     "own_platforms_yaml": "  - os: Windows\n    osVersion: 11\n    browserName: chrome\n    browserVersion: latest\n  - os: OS X\n    osVersion: Sequoia\n    browserName: playwright-webkit\n    browserVersion: latest\n  - os: Windows\n    osVersion: 11\n    browserName: playwright-firefox\n    browserVersion: latest",
-    "own_platforms_text": "Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox"
+    "own_platforms_text": "Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox",
+    "qig_url": "https://www.browserstack.com/docs/onboarding-cad/playwright-qig/java-sdk/getting-started"
   },
   {
     "folder": "playwright-csharp",
@@ -125,6 +132,7 @@
     "sample_subdir": "/CSharp-Playwright-BrowserStack",
     "platform_kind": "real desktop browsers, with a real iPhone on request",
     "own_platforms_yaml": "  - os: Windows\n    osVersion: 11\n    browserName: chrome\n    browserVersion: latest\n  - os: OS X\n    osVersion: Sequoia\n    browserName: playwright-webkit\n    browserVersion: latest\n  - os: Windows\n    osVersion: 11\n    browserName: playwright-firefox\n    browserVersion: latest",
-    "own_platforms_text": "Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox"
+    "own_platforms_text": "Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox",
+    "qig_url": "https://www.browserstack.com/docs/onboarding-cad/playwright-qig/c-sharp-sdk/getting-started"
   }
 ]

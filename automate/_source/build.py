@@ -66,11 +66,11 @@ def readme(skills):
            "Automate dashboard: BrowserStack's official sample build, or your own tests with no "
            "changes to your test logic. The agent checks your credentials, shows a plan, waits for "
            "your OK, runs the build and returns the dashboard link.", "",
-           "| Framework | Language | Runs on | Sample repo | Skill |",
+           "| Framework | Language | Runs on | Sample repo (as in the Quick Integration Guide) | Skill |",
            "| --- | --- | --- | --- | --- |"]
     for s in skills:
         out.append(f"| {s['framework']} | {s['language']} | {s['platform_kind']} | "
-                   f"[`{s['sample_repo']}`](https://github.com/browserstack/{s['sample_repo']}/tree/{s['sample_branch']}) | "
+                   f"[`{s['sample_repo']}@{s['sample_branch']}`](https://github.com/browserstack/{s['sample_repo']}/tree/{s['sample_branch']}) ([guide]({s['qig_url']})) | "
                    f"[`{s['folder']}`]({s['folder']}/SKILL.md) |")
     out += ["", "## Prompts", "",
             "Set `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` as environment variables first; "
