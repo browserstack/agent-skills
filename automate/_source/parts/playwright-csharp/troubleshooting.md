@@ -6,3 +6,4 @@
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
 | Real Android: every test fails with `KeyNotFoundException: The given key 'AndroidDevice' was not present in the dictionary`; sessions stay `done` with no name | Desktop-style tests can't drive real Android: remove the Android row (B1) |
 | A WebKit session takes 3 minutes or more to start while the other platforms have finished | Slow device allocation, not a hang (seen on macOS Ventura WebKit, 26 Nov 2026): wait up to 10 minutes before treating it as stuck |
+| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit`. Keep `safari` only on real iPhone rows |

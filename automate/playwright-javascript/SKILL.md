@@ -211,6 +211,10 @@ WebKit connections hung: those are not part of the demo, so report them as real 
 the plan. "Uh-oh! We detected some issues … SDK-GEN-004" about `GLOBAL_AGENT_HTTP_PROXY` is
 harmless.
 
+Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
+(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
+`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.
+
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
 ## Path B: your own tests
@@ -270,6 +274,12 @@ Note these in a short Assessment block at the top of your plan:
    downgrade further.
 3. **`webServer` or localhost targets:** set `browserstackLocal: true` in `browserstack.yml` and say
    so in the plan; the SDK starts the tunnel.
+4. **Desktop macOS rows use `playwright-webkit`, never `Safari`.** On desktop, Playwright on
+   BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
+   `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
+   sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
+   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   `safari` only on real iPhone rows (`deviceName: iPhone …`).
 
 Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
 multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
@@ -479,6 +489,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | Sample build: tests named "always failing …" fail and "flaky …" tests pass or fail at random | Expected: the Quick Integration Guide's sample is a test-reporting demo. Report those as expected failures and judge the run by the other tests |
 | Sample build, Firefox: `"beforeAll" hook timeout of 10000ms exceeded`, then `Target page, context or browser has been closed`; sessions `done` | The sample's `beforeAll` (load the page, then wait 3 s) runs past its 10 s timeout on remote Firefox. A real failure, not one of the demo's: report it; don't edit the sample |
 | Output stops for 5 minutes or more and the API shows no new session for that platform | A browser connection hung (seen once on macOS Ventura WebKit, Nov 2026; a slow start can also take 3 to 5 minutes). Press Ctrl-C once: the SDK still closes the build and prints the dashboard link. Report those tests as interrupted or not run |
+| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit`. Keep `safari` only on real iPhone rows |
 
 ## Quick reference
 

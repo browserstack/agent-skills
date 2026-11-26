@@ -55,3 +55,9 @@
    - Never also run through `browserstack-sdk mvn test`: attaching the agent twice fails with
      "agent already loaded".
 3. **Set `framework`** in `browserstack.yml` to the test framework (`junit5`, `testng` or `junit4`).
+4. **Desktop macOS rows use `playwright-webkit`, never `Safari`.** On desktop, Playwright on
+   BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
+   `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
+   sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
+   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   `safari` only on real iPhone rows (`deviceName: iPhone …`).

@@ -18,3 +18,9 @@
    with only this stack.
 3. **Don't run `browserstack-sdk setup`**: it writes `browserstack.yml` with the credentials inline.
    Use the file below instead, with `framework` set to the runner (`pytest` or `behave`).
+4. **Desktop macOS rows use `playwright-webkit`, never `Safari`.** On desktop, Playwright on
+   BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
+   `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
+   sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
+   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   `safari` only on real iPhone rows (`deviceName: iPhone …`).

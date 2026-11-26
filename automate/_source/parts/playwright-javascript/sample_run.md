@@ -18,3 +18,7 @@ WebKit connections hung: those are not part of the demo, so report them as real 
 `package-lock.json`, and its `postinstall` step updates the SDK to the latest version: list both in
 the plan. "Uh-oh! We detected some issues … SDK-GEN-004" about `GLOBAL_AGENT_HTTP_PROXY` is
 harmless.
+
+Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
+(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
+`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.

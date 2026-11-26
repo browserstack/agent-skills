@@ -11,3 +11,7 @@ every platform in `browserstack.yml` (desktop Chrome, Firefox and WebKit), in pa
 warning, are harmless. The sample test catches its own exceptions, so an `Exception: …` line in
 the output means the sample is out of date even when the sessions show `passed`: report it as in
 "When sessions failed".
+
+Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
+(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
+`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.

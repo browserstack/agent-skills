@@ -18,3 +18,7 @@ every platform in `browserstack.yml` (desktop Chrome, WebKit and Firefox), in pa
 test reports its own pass/fail. The browsers run on BrowserStack, so don't run `playwright install`. The SDK's notices "Please
 install pytest-selenium package", "Failed to patch pytest selenium" and "playwright.Android not
 importable" are harmless; don't install packages to silence them.
+
+Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
+(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
+`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.

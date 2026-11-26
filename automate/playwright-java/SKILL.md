@@ -204,6 +204,10 @@ warning, are harmless. The sample test catches its own exceptions, so an `Except
 the output means the sample is out of date even when the sessions show `passed`: report it as in
 "When sessions failed".
 
+Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
+(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
+`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.
+
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
 ## Path B: your own tests
@@ -303,6 +307,12 @@ Note these in a short Assessment block at the top of your plan:
    - Never also run through `browserstack-sdk mvn test`: attaching the agent twice fails with
      "agent already loaded".
 3. **Set `framework`** in `browserstack.yml` to the test framework (`junit5`, `testng` or `junit4`).
+4. **Desktop macOS rows use `playwright-webkit`, never `Safari`.** On desktop, Playwright on
+   BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
+   `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
+   sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
+   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   `safari` only on real iPhone rows (`deviceName: iPhone …`).
 
 Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
 multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
@@ -511,6 +521,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | Gradle 9: `Failed to load JUnit Platform … including the JUnit Platform launcher` | Gradle 9 no longer adds the launcher; it is the project's build, not BrowserStack. `browserstackTest` brings it in through `junit-platform-console`. For `gradle test` the project needs `testRuntimeOnly 'org.junit.platform:junit-platform-launcher'` (show it as a diff and ask) |
 | No output for several minutes, and the API shows no session yet for one platform | The browser connection is slow to start (Ventura Chrome took 3 to 5 minutes on 26 Nov 2026) or has hung. Wait up to 10 minutes; then press Ctrl-C once. Maven then exits 130 with no summary, and the build link is in `log/browserstack-javaagent.log` |
 | `Tests run: 0` with `BUILD SUCCESS`, or an empty "View build" link | Nothing reached BrowserStack (for example the disk filled up during the run): fix the cause and re-run; never report it as a pass |
+| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit`. Keep `safari` only on real iPhone rows |
 
 ## Quick reference
 

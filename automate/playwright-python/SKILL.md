@@ -210,6 +210,10 @@ test reports its own pass/fail. The browsers run on BrowserStack, so don't run `
 install pytest-selenium package", "Failed to patch pytest selenium" and "playwright.Android not
 importable" are harmless; don't install packages to silence them.
 
+Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
+(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
+`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.
+
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
 ## Path B: your own tests
@@ -288,6 +292,12 @@ Note these in a short Assessment block at the top of your plan:
    with only this stack.
 3. **Don't run `browserstack-sdk setup`**: it writes `browserstack.yml` with the credentials inline.
    Use the file below instead, with `framework` set to the runner (`pytest` or `behave`).
+4. **Desktop macOS rows use `playwright-webkit`, never `Safari`.** On desktop, Playwright on
+   BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
+   `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
+   sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
+   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   `safari` only on real iPhone rows (`deviceName: iPhone …`).
 
 Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
 multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
@@ -496,6 +506,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | macOS Ventura WebKit: `LocatorAssertions.to_have_count` fails with an empty message | Seen on every Ventura WebKit run of the sample (Nov 2026): use macOS Sequoia for WebKit |
 | iOS: `Only one browser context is allowed` from the second test on | `pytest-playwright` opens a new context per test in one shared browser: add the function-scoped `browser` fixture in `conftest.py` (B1) so each test gets its own session. Tests that open several contexts themselves can't run on real iOS |
 | Real Android: `AssertionError` at `assert pre_launched_browser`, sessions end `error` / `ABRUPT_CLOSE` | Playwright Python can't drive real Android through the SDK: remove the Android row (B1) |
+| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit`. Keep `safari` only on real iPhone rows |
 
 ## Quick reference
 

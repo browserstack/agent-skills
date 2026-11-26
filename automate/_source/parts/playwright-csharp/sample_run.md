@@ -14,3 +14,7 @@ the cart on bstackdemo.com and checks the cart) on every platform in `browsersta
 Chrome, WebKit and Firefox), in parallel. The build also adds the SDK's own `browserstack-sdk` tool
 to a `dotnet-tools.json`: list it in the plan. Warnings that `net6.0` is out of support are harmless.
 If a first attempt failed, delete `bin/` and `obj/` before running again (see Troubleshooting).
+
+Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
+(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
+`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.

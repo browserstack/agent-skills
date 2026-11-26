@@ -207,6 +207,10 @@ Chrome, WebKit and Firefox), in parallel. The build also adds the SDK's own `bro
 to a `dotnet-tools.json`: list it in the plan. Warnings that `net6.0` is out of support are harmless.
 If a first attempt failed, delete `bin/` and `obj/` before running again (see Troubleshooting).
 
+Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
+(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
+`playwright-webkit` and list that change in the plan; `safari` stays only on real iPhone rows.
+
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
 ## Path B: your own tests
@@ -256,6 +260,12 @@ Note these in a short Assessment block at the top of your plan:
 2. **Put `browserstack.yml` next to the test `.csproj`** (the file below). The first build also
    creates a `dotnet-tools.json` for the SDK's own `browserstack-sdk` tool, and the SDK writes its
    logs to `log/` next to the `.csproj`: list both in the plan.
+3. **Desktop macOS rows use `playwright-webkit`, never `Safari`.** On desktop, Playwright on
+   BrowserStack accepts only `chrome`, `edge`, `playwright-chromium`, `playwright-webkit` or
+   `playwright-firefox`: a `browserName: Safari` on an `os: OS X` row (the Quick Integration Guide's
+   sample config uses one) fails every test on that platform with `Invalid 'browser'`. If the
+   project's `browserstack.yml` has one, change it to `playwright-webkit` and show the diff. Keep
+   `safari` only on real iPhone rows (`deviceName: iPhone …`).
 
 Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
 multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
@@ -464,6 +474,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
 | Real Android: every test fails with `KeyNotFoundException: The given key 'AndroidDevice' was not present in the dictionary`; sessions stay `done` with no name | Desktop-style tests can't drive real Android: remove the Android row (B1) |
 | A WebKit session takes 3 minutes or more to start while the other platforms have finished | Slow device allocation, not a hang (seen on macOS Ventura WebKit, 26 Nov 2026): wait up to 10 minutes before treating it as stuck |
+| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit`. Keep `safari` only on real iPhone rows |
 
 ## Quick reference
 

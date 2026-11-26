@@ -5,3 +5,4 @@
 | macOS Ventura WebKit: `LocatorAssertions.to_have_count` fails with an empty message | Seen on every Ventura WebKit run of the sample (Nov 2026): use macOS Sequoia for WebKit |
 | iOS: `Only one browser context is allowed` from the second test on | `pytest-playwright` opens a new context per test in one shared browser: add the function-scoped `browser` fixture in `conftest.py` (B1) so each test gets its own session. Tests that open several contexts themselves can't run on real iOS |
 | Real Android: `AssertionError` at `assert pre_launched_browser`, sessions end `error` / `ABRUPT_CLOSE` | Playwright Python can't drive real Android through the SDK: remove the Android row (B1) |
+| `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit`. Keep `safari` only on real iPhone rows |
