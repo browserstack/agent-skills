@@ -14,3 +14,7 @@
    project's `browserstack.yml` has one, change it to `playwright-webkit` with `browserVersion: latest`
    (a Safari version such as `15.6` is not a WebKit version) and show the diff. Keep
    `safari` only on real iPhone rows (`deviceName: iPhone …`).
+4. **`Microsoft.NET.Test.Sdk` new enough for the Playwright test package.** If the project floats
+   `Microsoft.Playwright.NUnit` (or `.MSTest`) and pins `Microsoft.NET.Test.Sdk` below 17.8, restore fails
+   with `NU1605: Detected package downgrade`: raise `Microsoft.NET.Test.Sdk` to 17.8 or newer in the plan
+   (show the diff).

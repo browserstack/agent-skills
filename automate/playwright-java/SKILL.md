@@ -223,8 +223,8 @@ Note these in a short Assessment block at the top of your plan:
   if neither works, say what to install and stop. Never convert the build to Maven. In a
   multi-module repo, wire only the module with the Playwright tests.
 - **Test framework:** JUnit 5, TestNG or JUnit 4.
-- **Playwright version:** `com.microsoft.playwright:playwright`; keep the user's version (never
-  `LATEST`).
+- **Playwright version:** `com.microsoft.playwright:playwright`; keep the user's version; if the pom says
+  `LATEST`, pin it to the version that resolves today and show the diff.
 - **How the browser is created:** `Playwright.create()` with `chromium()`, `firefox()` or
   `webkit()` and `.launch()` (or `.connect()` to a BrowserStack endpoint) is routed by the SDK to
   the platforms in `browserstack.yml`; confirm on the API after the run. `executablePath`,
@@ -454,7 +454,8 @@ BrowserStack Automate — Run Complete
 ------------------------------------------------------------
 Ran       : [Sample build: browserstack/java-playwright-browserstack] or [Your tests: <path>]
 Result    : <N> of <M> sessions passed (from the BrowserStack API)
-Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total>
+Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total;
+            a platform that never got a session: "no session" and the runner's error>
 Build     : <build name>
 Dashboard : https://automate.browserstack.com/dashboard/v2/builds/<hashed_id>
 ============================================================

@@ -267,6 +267,10 @@ Note these in a short Assessment block at the top of your plan:
    project's `browserstack.yml` has one, change it to `playwright-webkit` with `browserVersion: latest`
    (a Safari version such as `15.6` is not a WebKit version) and show the diff. Keep
    `safari` only on real iPhone rows (`deviceName: iPhone …`).
+4. **`Microsoft.NET.Test.Sdk` new enough for the Playwright test package.** If the project floats
+   `Microsoft.Playwright.NUnit` (or `.MSTest`) and pins `Microsoft.NET.Test.Sdk` below 17.8, restore fails
+   with `NU1605: Detected package downgrade`: raise `Microsoft.NET.Test.Sdk` to 17.8 or newer in the plan
+   (show the diff).
 
 Add a `browserstack.yml` next to the build file of the project or module whose tests run (in a
 multi-module repo, that module, not the parent). If the project already has BrowserStack wiring
@@ -407,7 +411,8 @@ BrowserStack Automate — Run Complete
 ------------------------------------------------------------
 Ran       : [Sample build: browserstack/csharp-playwright-browserstack] or [Your tests: <path>]
 Result    : <N> of <M> sessions passed (from the BrowserStack API)
-Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total>
+Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total;
+            a platform that never got a session: "no session" and the runner's error>
 Build     : <build name>
 Dashboard : https://automate.browserstack.com/dashboard/v2/builds/<hashed_id>
 ============================================================

@@ -5,8 +5,8 @@ Note these in a short Assessment block at the top of your plan:
   if neither works, say what to install and stop. Never convert the build to Maven. In a
   multi-module repo, wire only the module with the Playwright tests.
 - **Test framework:** JUnit 5, TestNG or JUnit 4.
-- **Playwright version:** `com.microsoft.playwright:playwright`; keep the user's version (never
-  `LATEST`).
+- **Playwright version:** `com.microsoft.playwright:playwright`; keep the user's version; if the pom says
+  `LATEST`, pin it to the version that resolves today and show the diff.
 - **How the browser is created:** `Playwright.create()` with `chromium()`, `firefox()` or
   `webkit()` and `.launch()` (or `.connect()` to a BrowserStack endpoint) is routed by the SDK to
   the platforms in `browserstack.yml`; confirm on the API after the run. `executablePath`,

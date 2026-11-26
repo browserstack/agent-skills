@@ -384,7 +384,8 @@ BrowserStack Automate — Run Complete
 ------------------------------------------------------------
 Ran       : [Sample build: browserstack/nunit-browserstack] or [Your tests: <path>]
 Result    : <N> of <M> sessions passed (from the BrowserStack API)
-Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total>
+Platforms : <browser · OS — passed/failed, one per line; with several tests per platform, passed of total;
+            a platform that never got a session: "no session" and the runner's error>
 Build     : <build name>
 Dashboard : https://automate.browserstack.com/dashboard/v2/builds/<hashed_id>
 ============================================================
