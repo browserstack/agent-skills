@@ -199,9 +199,9 @@ npm run sample-test
 Jest tests (a sign-in with a locked account that expects the "Your account has been locked." error,
 and adding a product to the cart on bstackdemo.com) on every platform in `browserstack.yml`, in
 parallel, and reports pass/fail to BrowserStack. `npm install` also updates the tracked
-`package-lock.json`, and its `postinstall` step updates the SDK to the latest version: list both
-in the plan. `EBADENGINE` warnings and `[UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental`
-are harmless.
+`package-lock.json` and `yarn.lock`, and its `postinstall` step updates the SDK to the latest version: list both
+in the plan. `EBADENGINE` warnings, `[UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental` and
+`ACCESSIBILITY Build creation failed` are harmless.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -453,7 +453,7 @@ A2 to A4.
 
 | Task | Command |
 | --- | --- |
-| Sample build | `git clone https://github.com/browserstack/jest-js-browserstack.git && cd jest-js-browserstack && npm install && npm run sample-test` |
+| Sample build | `git clone -b main https://github.com/browserstack/jest-js-browserstack.git && cd jest-js-browserstack && npm install && npm run sample-test` |
 | Your tests (Mocha) | `npx browserstack-node-sdk mocha test/*.js --timeout 60000` |
 | Your tests (Jest) | `npx browserstack-node-sdk jest` |
 | Current SDK version | `npm view browserstack-node-sdk version` |
