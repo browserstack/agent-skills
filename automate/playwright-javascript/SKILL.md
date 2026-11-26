@@ -222,6 +222,26 @@ Note these in a short Assessment block at the top of your plan:
   Playwright's standard fixtures.
 - **Other SDK bindings** (for example Selenium) in the same `node_modules` can make the SDK patch
   the wrong framework.
+- **Real phones (on request):**
+  - **Galaxy S23:** add this row to `browserstack.yml` next to the desktop rows (check it against
+    the live catalog as in step A3):
+    ```yaml
+      - deviceName: Samsung Galaxy S23
+        osVersion: 13.0
+        browserName: chrome
+    ```
+  - **iPhone 15, as its own build:** keep `browserstack.yml` and add a `browserstack-ios.yml` with
+    the same settings, a new `buildName` and only this platform:
+    ```yaml
+    platforms:
+      - deviceName: iPhone 15
+        osVersion: 17
+        browserName: safari
+    ```
+    Run it with `npx browserstack-node-sdk playwright test --browserstack.config browserstack-ios.yml`
+    after the main run. Set expectations in the plan first (see the "Real phones" offer).
+  - On real Android, a page wider than the phone screen can make clicks below the fold time out
+    (see Troubleshooting); say so in the plan if the app isn't built for small screens.
 - **Which tests to run:** the ones the user named; otherwise the whole suite. If they named a flow
   that has no test, pick the spec whose name is the nearest step in that flow, and if two are
   equally close, the first by file path. State the pick and why.
@@ -346,10 +366,10 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   `failed` with the runner's message (below) and say so in the report. The SDK has been seen
   marking a timed-out test `passed`.
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
-  - Desktop and Android sessions are marked by the SDK. Real iPhone sessions have been left `done`
-    even when the test passed (Nov 2026), and so is every session when the SDK prints `Binary CLI
-    failed to start — running in direct flow`: re-run once in that case, then mark from the
-    runner's result as shown below.
+  - The SDK marks desktop, Android and real iPhone sessions (iPhone verified with SDK 1.80.4, Nov
+    2026); an iPhone build's own status can still read `done`, so report from the sessions. Every
+    session is left `done` when the SDK prints `Binary CLI failed to start — running in direct
+    flow`: re-run once in that case, then mark from the runner's result as shown below.
 - To mark a session yourself from the test runner's own result (use the assertion message as the
   reason for a failure, and say in your report that you marked it):
   ```bash
@@ -364,7 +384,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
 
 ## Report
 
-Print one summary block, then one line on what the tests do and where they came from:
+Print one summary block per build (an iPhone run of its own is a second build), then one line on
+what the tests do and where they came from:
 
 ```
 ============================================================
@@ -391,8 +412,10 @@ Report failures as results. Don't change test code to make them pass unless the 
     locator the demo site now matches more than once, or no wait for the product list). Say so
     plainly, note that the sessions ran on BrowserStack and their results are on the dashboard
     (say if you marked them yourself), and offer to run the user's own tests instead.
-  - Failed on one platform with an element-not-found error right after the page loaded: a timing
-    flake in the sample. Re-run once with a new build name and report both builds.
+  - Failed on some platforms with an element-not-found error right after the page loaded: the
+    sample has no wait there. Re-run once with a new build name and report both builds. If the
+    same platforms fail again, the sample fails there every time: say so, and offer to run the
+    user's own tests instead of re-running again.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
   platform (often real iOS Safari), say it is specific to that platform and offer to look at it
   separately. Don't edit the test without the user's OK.
@@ -407,11 +430,12 @@ After the report, offer three or four of these, one line each, then wait for the
   plan limits. K = max(1, ⌊free ÷ platforms⌋), capped at 5 because other people on the team share
   the same pool; it is how many tests each platform runs at once in a full suite, so don't cap it
   at the number of tests in this run.
-- **Real phones:** add a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari). Run the
-  iPhone as its own build and set expectations first: Playwright on real iOS is a custom WebKit
+- **Real phones:** add a real Samsung Galaxy S23 (Chrome) and a real iPhone 15 (Safari) (B1 has the
+  rows and how). Run the iPhone as its own build and set expectations first: Playwright on real iOS is a custom WebKit
   integration with limits (for example one browser context per session, and some keyboard and
   multi-tab behaviour differs from desktop WebKit), so a failure there doesn't change the desktop
-  results.
+  results. On real Android, pages wider than the phone screen can fail clicks with "intercepts
+  pointer events" (see Troubleshooting).
 - **Wider coverage:** add Edge, older browser versions or other operating systems.
 - **Your own app:** after the sample build, run their own Playwright JavaScript tests; for localhost or staging,
   turn on BrowserStack Local.
@@ -431,6 +455,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | iOS: `Only one browser context is allowed` | Real iOS allows one context per session: one test per session, no multi-context tests |
 | Sample build: every platform fails at `getByRole('link', { name: 'Dropdown' })` with a strict-mode violation | the-internet.herokuapp.com now has three "Dropdown" links, so the sample's locator matches more than one. It is the sample, not your setup: report it as in "When sessions failed" |
 | Tests pass but the API shows no build | Run through `npx browserstack-node-sdk playwright test`, and check for a custom `launch()` or `connect()` (B1) |
+| Real Android Chrome: `click()` times out with "<element> intercepts pointer events", and the intercepting element changes on every retry | The page is wider than the phone screen, so Chrome scrolls only the visible area and Playwright checks the wrong spot (seen on Galaxy S23 and Pixel 9, Nov 2026; desktop and iPhone unaffected). Report it as Android-specific. With the user's OK, scroll the page to the element before the click (`await el.evaluate(e => window.scrollTo(0, e.getBoundingClientRect().top + scrollY - 120))`) or use `click({ force: true })` for that click on Android only; the lasting fix is removing the page's horizontal overflow |
 
 ## Quick reference
 

@@ -425,7 +425,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
 
 ## Report
 
-Print one summary block, then one line on what the tests do and where they came from:
+Print one summary block per build (an iPhone run of its own is a second build), then one line on
+what the tests do and where they came from:
 
 ```
 ============================================================
@@ -452,8 +453,10 @@ Report failures as results. Don't change test code to make them pass unless the 
     locator the demo site now matches more than once, or no wait for the product list). Say so
     plainly, note that the sessions ran on BrowserStack and their results are on the dashboard
     (say if you marked them yourself), and offer to run the user's own tests instead.
-  - Failed on one platform with an element-not-found error right after the page loaded: a timing
-    flake in the sample. Re-run once with a new build name and report both builds.
+  - Failed on some platforms with an element-not-found error right after the page loaded: the
+    sample has no wait there. Re-run once with a new build name and report both builds. If the
+    same platforms fail again, the sample fails there every time: say so, and offer to run the
+    user's own tests instead of re-running again.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
   platform (often real iOS Safari), say it is specific to that platform and offer to look at it
   separately. Don't edit the test without the user's OK.

@@ -461,7 +461,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
     callback; without it, mark the sessions from the runner's result as shown below.
   - The official sample has no test framework either, so its sessions are left `done`. Mark each
     from `log/browserstack-javaagent.log`: it records each platform's capabilities and any
-    exception, followed by its `Session ID:` (the console prints `Sample test passed!` on success, without the platform).
+    exception, followed by its `Session ID:` (only sessions that threw have that block, and it
+    names the browser, not the OS: a session without one passed) (the console prints `Sample test passed!` on success, without the platform).
 - To mark a session yourself from the test runner's own result (use the assertion message as the
   reason for a failure, and say in your report that you marked it):
   ```bash
@@ -476,7 +477,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
 
 ## Report
 
-Print one summary block, then one line on what the tests do and where they came from:
+Print one summary block per build (an iPhone run of its own is a second build), then one line on
+what the tests do and where they came from:
 
 ```
 ============================================================
@@ -503,8 +505,10 @@ Report failures as results. Don't change test code to make them pass unless the 
     locator the demo site now matches more than once, or no wait for the product list). Say so
     plainly, note that the sessions ran on BrowserStack and their results are on the dashboard
     (say if you marked them yourself), and offer to run the user's own tests instead.
-  - Failed on one platform with an element-not-found error right after the page loaded: a timing
-    flake in the sample. Re-run once with a new build name and report both builds.
+  - Failed on some platforms with an element-not-found error right after the page loaded: the
+    sample has no wait there. Re-run once with a new build name and report both builds. If the
+    same platforms fail again, the sample fails there every time: say so, and offer to run the
+    user's own tests instead of re-running again.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
   platform (often real iOS Safari), say it is specific to that platform and offer to look at it
   separately. Don't edit the test without the user's OK.

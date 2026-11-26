@@ -199,8 +199,8 @@ dotnet test --filter "Category=sample-test" -f net10.0
 The BrowserStack SDK (the `BrowserStack.TestAdapter` package already in the project) runs
 `SampleTest` (adds a product to the cart on bstackdemo.com and checks it is there) on every
 platform in `browserstack.yml`, in parallel. The build also adds the SDK's own `browserstack-sdk`
-tool to `.config/dotnet-tools.json`: list it in the plan. The sample test has no waits, so one
-platform can fail with `NoSuchElementException` (see "When sessions failed").
+tool to `.config/dotnet-tools.json`: list it in the plan. The sample test has no waits, so some
+platforms can fail with `NoSuchElementException` (see "When sessions failed").
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -366,7 +366,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
 
 ## Report
 
-Print one summary block, then one line on what the tests do and where they came from:
+Print one summary block per build (an iPhone run of its own is a second build), then one line on
+what the tests do and where they came from:
 
 ```
 ============================================================
@@ -393,8 +394,10 @@ Report failures as results. Don't change test code to make them pass unless the 
     locator the demo site now matches more than once, or no wait for the product list). Say so
     plainly, note that the sessions ran on BrowserStack and their results are on the dashboard
     (say if you marked them yourself), and offer to run the user's own tests instead.
-  - Failed on one platform with an element-not-found error right after the page loaded: a timing
-    flake in the sample. Re-run once with a new build name and report both builds.
+  - Failed on some platforms with an element-not-found error right after the page loaded: the
+    sample has no wait there. Re-run once with a new build name and report both builds. If the
+    same platforms fail again, the sample fails there every time: say so, and offer to run the
+    user's own tests instead of re-running again.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
   platform (often real iOS Safari), say it is specific to that platform and offer to look at it
   separately. Don't edit the test without the user's OK.
@@ -427,7 +430,7 @@ After the report, offer three or four of these, one line each, then wait for the
 | `dotnet test` finishes with 0 tests run, or runs locally | An outdated `BrowserStack.TestAdapter`: update it to the current release (B2, step 1) |
 | `You must install or update .NET to run this application` | The project targets a .NET version that isn't installed: run with `-f <installed version>` |
 | Android: `Unable to maximize window` | `Maximize()` on a real phone: guard it as in B2, step 3 |
-| Sample build: one platform fails with `NoSuchElementException` on `//*[@id="1"]/p` | The sample has no waits: re-run once with a new build name (see "When sessions failed") |
+| Sample build: some platforms fail with `NoSuchElementException` on `//*[@id="1"]/p` | The sample has no waits: re-run once with a new build name. If the same platforms fail again (Windows 10 Edge and the Galaxy S22 Ultra did on 26 Nov), it is the sample on those platforms: report it and offer the user's own tests (see "When sessions failed") |
 | Test host crashed with `JsonReaderException … AtomicFile`, or the output shows another project's tests | Another .NET SDK run is active on this machine (they share `$TMPDIR/.browserstack/`, which also holds a copy of the credentials): run one at a time, and trust the API |
 | iOS: `FindElements` returns nothing right after a page load | Real iOS Safari doesn't apply the implicit wait to `FindElements`: the test needs an explicit wait (ask before changing it) |
 | NuGet restore fails | Check access to `api.nuget.org` (corporate proxy or feed settings) |
