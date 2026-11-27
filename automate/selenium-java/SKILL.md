@@ -288,8 +288,35 @@ Note these in a short Assessment block at the top of your plan:
      `'--scan-classpath', '--include-classname', '.*'` with `'--select-class', 'com.example.LoginTest'`.
      Don't add BrowserStack's `com.browserstack.gradle-sdk` plugin: with the current SDK no session
      starts. Verified with the Groovy DSL on Gradle 9.9.2 (Nov 2026); for `build.gradle.kts`, write
-     the same task in Kotlin and say it is unverified. Gradle with TestNG or JUnit 4 has no tested
-     recipe yet: say so and stop.
+     the same task in Kotlin and say it is unverified.
+   - **Gradle (TestNG):** TestNG runs every platform inside the one test JVM, so the agent can go on
+     Gradle's own `test` task (verified on Gradle 9.9.2, Nov 2026; the SDK names and marks each
+     session):
+     ```groovy
+     dependencies { testImplementation 'com.browserstack:browserstack-java-sdk:CURRENT_RELEASE' }
+     test {
+       useTestNG()
+       doFirst { jvmArgs "-javaagent:${classpath.find { it.name.contains('browserstack-java-sdk') }.absolutePath}" }
+     }
+     ```
+     Run it with `gradle test` and set `framework: testng` in `browserstack.yml`.
+   - **Gradle (JUnit 4):** don't put the agent on the `test` task: the SDK's per-platform JVMs fail
+     there and no build is created at all. Run the tests through `JUnitCore` in a separate task, and
+     leave `test` as it is:
+     ```groovy
+     dependencies { testImplementation 'com.browserstack:browserstack-java-sdk:CURRENT_RELEASE' }
+     // Runs the JUnit 4 tests on every platform in browserstack.yml: gradle browserstackTest
+     tasks.register('browserstackTest', JavaExec) {
+       dependsOn 'testClasses'
+       classpath = sourceSets.test.runtimeClasspath
+       mainClass = 'org.junit.runner.JUnitCore'
+       args 'com.example.LoginTest', 'com.example.CartTest'   // every test class to run, fully qualified
+       doFirst { jvmArgs "-javaagent:${classpath.find { it.name.contains('browserstack-java-sdk') }.absolutePath}" }
+     }
+     ```
+     `JUnitCore` doesn't scan for tests, so list each test class (or one `@RunWith(Suite.class)`
+     class). Set `framework: junit4` in `browserstack.yml`. Verified on Gradle 9.9.2 with Selenium
+     (Nov 2026). Neither TestNG nor JUnit 4 needs an extra dependency on Gradle 9.
    - **No test framework (a plain `main()` run by `exec-maven-plugin`):** put the agent on the forked
      JVM instead of surefire (`<executable>java</executable>`, `<classpathScope>test</classpathScope>`,
      arguments `-javaagent:${com.browserstack:browserstack-java-sdk:jar}`, `-classpath`, `<classpath/>`,
@@ -424,7 +451,8 @@ itself). Before the run, check these and put any problem in the plan:
 ### B3. Run
 
 - **Maven:** `mvn test` (one class: `mvn test -Dtest=LoginTest`; one module: `mvn -pl <module> test`).
-- **Gradle:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2. The
+- **Gradle with TestNG:** `./gradlew test` (or `gradle test`), with the agent on `test` (B2).
+- **Gradle with JUnit 5 or JUnit 4:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2. The
   console launcher prints one test tree per platform: read its "tests successful" / "tests
   failed" lines and `BUILD`.
 - **Plain `main()`:** `mvn test-compile exec:exec`.
@@ -469,7 +497,8 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   **`done` means the session ran but nobody reported pass or fail**: never report it as a pass.
   A session whose only failure was a `beforeAll` hook is also left `done` and unnamed: report the
   runner's hook error for that platform.
-  - Plain JUnit 5 and a framework-less `main()` in the user's own project are left `done` by the
+  - TestNG and JUnit 4 sessions are named and marked by the SDK (Maven and Gradle). Plain JUnit 5
+    and a framework-less `main()` in the user's own project are left `done` by the
     SDK. That is why B2 adds the callback; without it, mark the sessions from the runner's result
     as shown below. The official sample's sessions are named and marked by the SDK (26 Nov 2026).
 - To mark a session yourself from the test runner's own result (use the assertion message as the
@@ -562,6 +591,8 @@ After the report, offer three or four of these, one line each, then wait for the
 | JaCoCo prints `Unsupported class file major version` | JaCoCo is older than the JDK Maven runs on; harmless when the API shows the sessions passed |
 | Gradle: only one platform gets a session and the output shows `java.io.EOFException … GradleWorkerMain` | The agent is on Gradle's `test` task, where the SDK can drive one platform. Use the `browserstackTest` task from B2 |
 | Gradle 9: `Failed to load JUnit Platform … including the JUnit Platform launcher` | Gradle 9 no longer adds the launcher; it is the project's build, not BrowserStack. `browserstackTest` brings it in through `junit-platform-console`. For `gradle test` the project needs `testRuntimeOnly 'org.junit.platform:junit-platform-launcher'` (show it as a diff and ask) |
+| Gradle with JUnit 4: `BUILD FAILED` with `java.io.EOFException` or `OutOfMemoryError` in `GradleWorkerMain`, and no build on the API | The agent is on Gradle's `test` task, where JUnit 4 can't run under the SDK. Use the `browserstackTest` JavaExec task from B2 |
+| A Gradle daemon is still running after the build | The SDK runs `gradle dependencies` to write `log/dependency-tree.log`, which starts one. Harmless; stop it with `gradle --stop` |
 
 ## Quick reference
 
@@ -573,6 +604,7 @@ A2 to A4.
 | Sample build | `git clone -b master https://github.com/browserstack/junit-browserstack.git && cd junit-browserstack/junit-5 && mvn test -P sample-test` |
 | Your tests (Maven) | `mvn test` with the agent on surefire's `argLine` |
 | One test class | `mvn test -Dtest=LoginTest` |
-| Your tests (Gradle) | `./gradlew browserstackTest` (the task from B2) |
+| Your tests (Gradle, JUnit 5 or 4) | `./gradlew browserstackTest` (the task from B2) |
+| Your tests (Gradle, TestNG) | `./gradlew test` with the agent on `test` (B2) |
 | Current SDK version | `curl -s https://repo1.maven.org/maven2/com/browserstack/browserstack-java-sdk/maven-metadata.xml \| grep -o '<release>[^<]*'` |
 | Docs | https://www.browserstack.com/docs/automate/selenium/getting-started/java |

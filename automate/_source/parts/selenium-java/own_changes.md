@@ -50,8 +50,35 @@
      `'--scan-classpath', '--include-classname', '.*'` with `'--select-class', 'com.example.LoginTest'`.
      Don't add BrowserStack's `com.browserstack.gradle-sdk` plugin: with the current SDK no session
      starts. Verified with the Groovy DSL on Gradle 9.9.2 (Nov 2026); for `build.gradle.kts`, write
-     the same task in Kotlin and say it is unverified. Gradle with TestNG or JUnit 4 has no tested
-     recipe yet: say so and stop.
+     the same task in Kotlin and say it is unverified.
+   - **Gradle (TestNG):** TestNG runs every platform inside the one test JVM, so the agent can go on
+     Gradle's own `test` task (verified on Gradle 9.9.2, Nov 2026; the SDK names and marks each
+     session):
+     ```groovy
+     dependencies { testImplementation 'com.browserstack:browserstack-java-sdk:CURRENT_RELEASE' }
+     test {
+       useTestNG()
+       doFirst { jvmArgs "-javaagent:${classpath.find { it.name.contains('browserstack-java-sdk') }.absolutePath}" }
+     }
+     ```
+     Run it with `gradle test` and set `framework: testng` in `browserstack.yml`.
+   - **Gradle (JUnit 4):** don't put the agent on the `test` task: the SDK's per-platform JVMs fail
+     there and no build is created at all. Run the tests through `JUnitCore` in a separate task, and
+     leave `test` as it is:
+     ```groovy
+     dependencies { testImplementation 'com.browserstack:browserstack-java-sdk:CURRENT_RELEASE' }
+     // Runs the JUnit 4 tests on every platform in browserstack.yml: gradle browserstackTest
+     tasks.register('browserstackTest', JavaExec) {
+       dependsOn 'testClasses'
+       classpath = sourceSets.test.runtimeClasspath
+       mainClass = 'org.junit.runner.JUnitCore'
+       args 'com.example.LoginTest', 'com.example.CartTest'   // every test class to run, fully qualified
+       doFirst { jvmArgs "-javaagent:${classpath.find { it.name.contains('browserstack-java-sdk') }.absolutePath}" }
+     }
+     ```
+     `JUnitCore` doesn't scan for tests, so list each test class (or one `@RunWith(Suite.class)`
+     class). Set `framework: junit4` in `browserstack.yml`. Verified on Gradle 9.9.2 with Selenium
+     (Nov 2026). Neither TestNG nor JUnit 4 needs an extra dependency on Gradle 9.
    - **No test framework (a plain `main()` run by `exec-maven-plugin`):** put the agent on the forked
      JVM instead of surefire (`<executable>java</executable>`, `<classpathScope>test</classpathScope>`,
      arguments `-javaagent:${com.browserstack:browserstack-java-sdk:jar}`, `-classpath`, `<classpath/>`,

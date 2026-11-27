@@ -302,8 +302,35 @@ Note these in a short Assessment block at the top of your plan:
      `'--scan-classpath', '--include-classname', '.*'` with `'--select-class', 'com.example.LoginTest'`.
      Don't add BrowserStack's `com.browserstack.gradle-sdk` plugin: with the current SDK no session
      starts. Verified with the Groovy DSL on Gradle 9.9.2 (Nov 2026); for `build.gradle.kts`, write
-     the same task in Kotlin and say it is unverified. Gradle with TestNG or JUnit 4 has no tested
-     recipe yet: say so and stop.
+     the same task in Kotlin and say it is unverified.
+   - **Gradle (TestNG):** TestNG runs every platform inside the one test JVM, so the agent can go on
+     Gradle's own `test` task (verified on Gradle 9.9.2, Nov 2026, Selenium and Playwright; the SDK names and marks each
+     session):
+     ```groovy
+     dependencies { testImplementation 'com.browserstack:browserstack-java-sdk:CURRENT_RELEASE' }
+     test {
+       useTestNG()
+       doFirst { jvmArgs "-javaagent:${classpath.find { it.name.contains('browserstack-java-sdk') }.absolutePath}" }
+     }
+     ```
+     Run it with `gradle test` and set `framework: testng` in `browserstack.yml`.
+   - **Gradle (JUnit 4):** don't put the agent on the `test` task: the SDK's per-platform JVMs fail
+     there and no build is created at all. Run the tests through `JUnitCore` in a separate task, and
+     leave `test` as it is:
+     ```groovy
+     dependencies { testImplementation 'com.browserstack:browserstack-java-sdk:CURRENT_RELEASE' }
+     // Runs the JUnit 4 tests on every platform in browserstack.yml: gradle browserstackTest
+     tasks.register('browserstackTest', JavaExec) {
+       dependsOn 'testClasses'
+       classpath = sourceSets.test.runtimeClasspath
+       mainClass = 'org.junit.runner.JUnitCore'
+       args 'com.example.LoginTest', 'com.example.CartTest'   // every test class to run, fully qualified
+       doFirst { jvmArgs "-javaagent:${classpath.find { it.name.contains('browserstack-java-sdk') }.absolutePath}" }
+     }
+     ```
+     `JUnitCore` doesn't scan for tests, so list each test class (or one `@RunWith(Suite.class)`
+     class). Set `framework: junit4` in `browserstack.yml`. Verified on Gradle 9.9.2 with Selenium
+     (Nov 2026); for Playwright with JUnit 4, say it is unverified. Neither TestNG nor JUnit 4 needs an extra dependency on Gradle 9.
    - Never also run through `browserstack-sdk mvn test`: attaching the agent twice fails with
      "agent already loaded".
 3. **Set `framework`** in `browserstack.yml` to the test framework (`junit5`, `testng` or `junit4`).
@@ -384,7 +411,8 @@ itself). Before the run, check these and put any problem in the plan:
 ### B3. Run
 
 - **Maven:** `mvn test` (one class: `mvn test -Dtest=CartTest`; one module: `mvn -pl <module> test`).
-- **Gradle:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2. The
+- **Gradle with TestNG:** `./gradlew test` (or `gradle test`), with the agent on `test` (B2).
+- **Gradle with JUnit 5 or JUnit 4:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2. The
   console launcher prints one test tree per platform: read its "tests successful" / "tests
   failed" lines and `BUILD`.
 
@@ -528,6 +556,8 @@ After the report, offer three or four of these, one line each, then wait for the
 | `Tests run: 0` with `BUILD SUCCESS`, or an empty "View build" link | Nothing reached BrowserStack (for example the disk filled up during the run): fix the cause and re-run; never report it as a pass |
 | `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit` with `browserVersion: latest`. Keep `safari` only on real iPhone rows |
 | `browserType.connect: Error: Unsupported browser version` on a `playwright-webkit` row | The row kept a Safari version (for example `15.6` from the Quick Integration Guide's config): set `browserVersion: latest` |
+| Gradle with JUnit 4: `BUILD FAILED` with `java.io.EOFException` or `OutOfMemoryError` in `GradleWorkerMain`, and no build on the API | The agent is on Gradle's `test` task, where JUnit 4 can't run under the SDK. Use the `browserstackTest` JavaExec task from B2 |
+| A Gradle daemon is still running after the build | The SDK runs `gradle dependencies` to write `log/dependency-tree.log`, which starts one. Harmless; stop it with `gradle --stop` |
 
 ## Quick reference
 
@@ -538,6 +568,7 @@ A2 to A4.
 | --- | --- |
 | Sample build | `git clone https://github.com/browserstack/java-playwright-browserstack.git && cd java-playwright-browserstack && mvn compile && mvn test -P sample-test` |
 | Your tests (Maven) | `mvn test` with the agent on surefire's `argLine` |
-| Your tests (Gradle) | `./gradlew browserstackTest` (the task from B2) |
+| Your tests (Gradle, JUnit 5 or 4) | `./gradlew browserstackTest` (the task from B2) |
+| Your tests (Gradle, TestNG) | `./gradlew test` with the agent on `test` (B2) |
 | Current SDK version | `curl -s https://repo1.maven.org/maven2/com/browserstack/browserstack-java-sdk/maven-metadata.xml \| grep -o '<release>[^<]*'` |
 | Docs | https://www.browserstack.com/docs/automate/playwright/getting-started/java |

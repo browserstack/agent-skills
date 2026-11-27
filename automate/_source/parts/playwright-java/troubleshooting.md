@@ -8,3 +8,5 @@
 | `Tests run: 0` with `BUILD SUCCESS`, or an empty "View build" link | Nothing reached BrowserStack (for example the disk filled up during the run): fix the cause and re-run; never report it as a pass |
 | `Invalid 'browser'. Use 'chrome', 'edge', 'playwright-chromium', 'playwright-webkit' or 'playwright-firefox' only` | A desktop row has `browserName: Safari` (the Quick Integration Guide's config uses it): change it to `playwright-webkit` with `browserVersion: latest`. Keep `safari` only on real iPhone rows |
 | `browserType.connect: Error: Unsupported browser version` on a `playwright-webkit` row | The row kept a Safari version (for example `15.6` from the Quick Integration Guide's config): set `browserVersion: latest` |
+| Gradle with JUnit 4: `BUILD FAILED` with `java.io.EOFException` or `OutOfMemoryError` in `GradleWorkerMain`, and no build on the API | The agent is on Gradle's `test` task, where JUnit 4 can't run under the SDK. Use the `browserstackTest` JavaExec task from B2 |
+| A Gradle daemon is still running after the build | The SDK runs `gradle dependencies` to write `log/dependency-tree.log`, which starts one. Harmless; stop it with `gradle --stop` |

@@ -1,5 +1,6 @@
 - **Maven:** `mvn test` (one class: `mvn test -Dtest=LoginTest`; one module: `mvn -pl <module> test`).
-- **Gradle:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2. The
+- **Gradle with TestNG:** `./gradlew test` (or `gradle test`), with the agent on `test` (B2).
+- **Gradle with JUnit 5 or JUnit 4:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2. The
   console launcher prints one test tree per platform: read its "tests successful" / "tests
   failed" lines and `BUILD`.
 - **Plain `main()`:** `mvn test-compile exec:exec`.
