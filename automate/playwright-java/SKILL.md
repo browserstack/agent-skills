@@ -139,9 +139,9 @@ the prompt again.
 
 ## Path A: sample build
 
-This runs BrowserStack's official Playwright Java sample, the one the in-product Quick Integration
-Guide uses (https://www.browserstack.com/docs/onboarding-cad/playwright-qig/java-sdk/getting-started): `browserstack/java-playwright-browserstack`, branch `main`, on the
-platforms it ships with.
+This runs BrowserStack's official Playwright Java sample from the repo the in-product Quick
+Integration Guide uses (https://www.browserstack.com/docs/onboarding-cad/playwright-qig/java-sdk/getting-started): `browserstack/java-playwright-browserstack`, branch `main`,
+on the platforms it ships with.
 
 ### A1. Prerequisites
 
@@ -204,9 +204,10 @@ warning, are harmless. The sample test catches its own exceptions, so an `Except
 the output means the sample is out of date even when the sessions show `passed`: report it as in
 "When sessions failed".
 
-Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
-(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
-`playwright-webkit` with `browserVersion: latest`, and list that change in the plan; `safari` stays only on real iPhone rows.
+When you read the sample's `browserstack.yml` for the plan, look for a `browserName: Safari` on a
+desktop (`os:`) row. If there is one, list the change to `playwright-webkit` with
+`browserVersion: latest` in the plan, and make it after cloning, before running (find it with
+`grep -niB3 "browserName: *safari" browserstack.yml`); `safari` stays only on real iPhone rows.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -452,7 +453,7 @@ curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browsers
   logs in the `log/` folder next to `browserstack.yml` (mask the key first) before guessing; then
   see Troubleshooting. Report what stopped the run and the fix, without a dashboard link.
 - **Each session's `status`:** `passed` or `failed` means the result reached the dashboard. Report
-  from the sessions: the build's own `status` can read `failed` while every session passed (for
+  from the sessions: the build's own `status` can read `failed` or `done` while every session passed (for
   example when a test closes Playwright without closing the browser). If the test runner reports
   a failed test for a platform whose session shows `passed`, trust the runner: mark that session
   `failed` with the runner's message (below) and say so in the report. The SDK has been seen
@@ -502,7 +503,7 @@ logs, plus network and console logs when `browserstack.yml` turns them on.
 
 Report failures as results. Don't change test code to make them pass unless the user asks.
 
-- **Sample build:** never edit BrowserStack's sample.
+- **Sample build:** never edit BrowserStack's sample beyond the fixes A4 names.
   - Failed the same way on every platform: the sample itself is out of date (for example a
     locator the demo site now matches more than once, or no wait for the product list). Say so
     plainly, note that the sessions ran on BrowserStack and their results are on the dashboard
@@ -511,11 +512,6 @@ Report failures as results. Don't change test code to make them pass unless the 
     sample has no wait there. Re-run once with a new build name and report both builds. If the
     same platforms fail again, the sample fails there every time: say so, and offer to run the
     user's own tests instead of re-running again.
-- **Tests that fail on purpose:** some samples include tests named "always failing" or "flaky"
-  to demonstrate BrowserStack's test reporting. Report those as expected, not as a setup
-  problem, and judge the run by the other tests. Judge by the error, not only the name: a hook
-  timeout, an interrupted test or tests that did not run are real failures even in a test named
-  "flaky". For each platform give passed, failed on purpose, other failures and did not run.
 - **Your own tests:** quote the failing assertion for each platform. If a test fails on only one
   platform (often real iOS Safari), say it is specific to that platform and offer to look at it
   separately. Don't edit the test without the user's OK.

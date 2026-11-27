@@ -12,6 +12,7 @@ warning, are harmless. The sample test catches its own exceptions, so an `Except
 the output means the sample is out of date even when the sessions show `passed`: report it as in
 "When sessions failed".
 
-Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
-(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
-`playwright-webkit` with `browserVersion: latest`, and list that change in the plan; `safari` stays only on real iPhone rows.
+When you read the sample's `browserstack.yml` for the plan, look for a `browserName: Safari` on a
+desktop (`os:`) row. If there is one, list the change to `playwright-webkit` with
+`browserVersion: latest` in the plan, and make it after cloning, before running (find it with
+`grep -niB3 "browserName: *safari" browserstack.yml`); `safari` stays only on real iPhone rows.

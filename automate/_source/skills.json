@@ -77,7 +77,7 @@
     "triggers": "Playwright with JavaScript or TypeScript, @playwright/test, playwright.config, browserstack-node-sdk or browserstack.yml",
     "toolchain_check": "`node -v` (20+), `npm -v`, `git --version`",
     "sample_repo": "node-js-playwright-browserstack",
-    "sample_branch": "tra",
+    "sample_branch": "main",
     "platform_kind": "real desktop browsers, with real Android and iPhone on request",
     "own_platforms_yaml": "  - os: Windows\n    osVersion: 11\n    browserName: chrome\n    browserVersion: latest\n  - os: OS X\n    osVersion: Sequoia\n    browserName: playwright-webkit\n    browserVersion: latest\n  - os: Windows\n    osVersion: 11\n    browserName: playwright-firefox\n    browserVersion: latest",
     "own_platforms_text": "Windows 11 Chrome, macOS Sequoia WebKit and Windows 11 Firefox",

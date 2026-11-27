@@ -19,6 +19,7 @@ test reports its own pass/fail. The browsers run on BrowserStack, so don't run `
 install pytest-selenium package", "Failed to patch pytest selenium" and "playwright.Android not
 importable" are harmless; don't install packages to silence them.
 
-Before running, check `browserstack.yml` for a `browserName: Safari` on a desktop (`os:`) row
-(`grep -niB3 "browserName: *safari" browserstack.yml`). If there is one, change it to
-`playwright-webkit` with `browserVersion: latest`, and list that change in the plan; `safari` stays only on real iPhone rows.
+When you read the sample's `browserstack.yml` for the plan, look for a `browserName: Safari` on a
+desktop (`os:`) row. If there is one, list the change to `playwright-webkit` with
+`browserVersion: latest` in the plan, and make it after cloning, before running (find it with
+`grep -niB3 "browserName: *safari" browserstack.yml`); `safari` stays only on real iPhone rows.
