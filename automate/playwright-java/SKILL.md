@@ -412,13 +412,17 @@ itself). Before the run, check these and put any problem in the plan:
 
 - **Maven:** `mvn test` (one class: `mvn test -Dtest=CartTest`; one module: `mvn -pl <module> test`).
 - **Gradle with TestNG:** `./gradlew test` (or `gradle test`), with the agent on `test` (B2).
-- **Gradle with JUnit 5 or JUnit 4:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2. The
-  console launcher prints one test tree per platform: read its "tests successful" / "tests
-  failed" lines and `BUILD`.
+  Gradle prints no per-test lines on success: take the counts from
+  `build/test-results/test/TEST-*.xml`.
+- **Gradle with JUnit 5 or JUnit 4:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2.
+  JUnit 5's console launcher prints one test tree per platform: read its "tests successful" /
+  "tests failed" lines and `BUILD`. JUnit 4's `JUnitCore` prints `OK (N tests)`, or `FAILURES!!!`
+  with `Tests run: N, Failures: M`, once per platform.
 
 Don't add `-q`. If the output is long, save it to a file and read the `Tests run:` and `BUILD`
 lines. Playwright may download its driver on the first run, and older surefire versions print
-`[ERROR] Surefire is going to kill self fork JVM` (about 30 s); both are harmless when the build
+`[ERROR] Surefire is going to kill self fork JVM` (about 30 s); so is a `*** java.lang.instrument
+ASSERTION FAILED ***: "!errorOutstanding"` line under Gradle. All are harmless when the build
 succeeds and the API shows the sessions.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
@@ -541,7 +545,7 @@ After the report, offer three or four of these, one line each, then wait for the
 
 | Symptom | Cause and fix |
 | --- | --- |
-| Tests pass locally but the API shows no build | The run did not go through the BrowserStack SDK. Check the run command and wiring below, and read `log/sdk-cli.log` (mask the key) |
+| Tests pass locally but the API shows no build | The run did not go through the BrowserStack SDK. Check the run command and wiring below, and read `log/sdk-cli.log`, or `log/browserstack-javaagent.log` if there is none (mask the key) |
 | Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → point `browserStackLocalOptions.binarypath` at BrowserStack's native Apple-silicon binary (see Private apps) and re-run |
 | `All parallel tests are currently in use` | The plan's parallel limit is reached; lower `parallelsPerPlatform` or wait |
 | `Browser/OS combination not supported` | A retired device or OS version: re-check the catalog (step A3), swap to the closest current one and re-run once |

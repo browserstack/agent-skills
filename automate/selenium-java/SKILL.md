@@ -414,6 +414,7 @@ browserstackLocal: false   # true only for localhost, staging or a private app
 debug: true
 networkLogs: true
 consoleLogs: info
+# framework: testng   # Gradle only: testng or junit4 (see B2)
 # testObservability: true   # only for TestNG, Cucumber-TestNG or Serenity; it does nothing for plain JUnit 5
 ```
 
@@ -452,15 +453,19 @@ itself). Before the run, check these and put any problem in the plan:
 
 - **Maven:** `mvn test` (one class: `mvn test -Dtest=LoginTest`; one module: `mvn -pl <module> test`).
 - **Gradle with TestNG:** `./gradlew test` (or `gradle test`), with the agent on `test` (B2).
-- **Gradle with JUnit 5 or JUnit 4:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2. The
-  console launcher prints one test tree per platform: read its "tests successful" / "tests
-  failed" lines and `BUILD`.
+  Gradle prints no per-test lines on success: take the counts from
+  `build/test-results/test/TEST-*.xml`.
+- **Gradle with JUnit 5 or JUnit 4:** `./gradlew browserstackTest` (or `gradle browserstackTest`), the task from B2.
+  JUnit 5's console launcher prints one test tree per platform: read its "tests successful" /
+  "tests failed" lines and `BUILD`. JUnit 4's `JUnitCore` prints `OK (N tests)`, or `FAILURES!!!`
+  with `Tests run: N, Failures: M`, once per platform.
 - **Plain `main()`:** `mvn test-compile exec:exec`.
 
 Don't add `-q`. If the output is long, save it to a file and read the `Tests run:`, `BUILD` and
 `View build` lines. These lines also appear on genuine BrowserStack runs and are harmless:
 `[ERROR] Surefire is going to kill self fork JVM` (adds about 30 s), SeleniumManager "chromedriver
-version … detected in PATH", `Unable to find CDP implementation`, `Unable to connect to determine websocket url … localhost:9222`, and "Set testReporting: true".
+version … detected in PATH", `Unable to find CDP implementation`, `Unable to connect to determine websocket url … localhost:9222`, "Set testReporting: true", and, under Gradle, `*** java.lang.instrument ASSERTION FAILED ***:
+"!errorOutstanding"`.
 
 Then go to **Confirm the run on BrowserStack** and **Report**.
 
@@ -578,7 +583,7 @@ After the report, offer three or four of these, one line each, then wait for the
 
 | Symptom | Cause and fix |
 | --- | --- |
-| Tests pass locally but the API shows no build | The run did not go through the BrowserStack SDK. Check the run command and wiring below, and read `log/sdk-cli.log` (mask the key) |
+| Tests pass locally but the API shows no build | The run did not go through the BrowserStack SDK. Check the run command and wiring below, and read `log/sdk-cli.log`, or `log/browserstack-javaagent.log` if there is none (mask the key) |
 | Every session fails to start with `[browserstack.local] is set to true but local testing through BrowserStack is not connected` | The Local binary could not start (in `log/sdk-cli.log`: `Local.start … spawn …`; error `-86` = an Intel binary on Apple silicon without Rosetta). Public site → `browserstackLocal: false`. Private app → point `browserStackLocalOptions.binarypath` at BrowserStack's native Apple-silicon binary (see Private apps) and re-run |
 | `All parallel tests are currently in use` | The plan's parallel limit is reached; lower `parallelsPerPlatform` or wait |
 | `Browser/OS combination not supported` | A retired device or OS version: re-check the catalog (step A3), swap to the closest current one and re-run once |
