@@ -62,21 +62,42 @@ Look at the folder the user is in and its subfolders (read-only). This skill is 
 
 Skip this step if `browserstack-automate-playwright-python/SKILL.md` already exists in your skills folder (for example
 `.claude/skills/`, `.cursor/skills/`, `.github/skills/` or `.agents/skills/`; use the
-project-level folder your agent uses).
+project-level folder your agent uses) and passes the check in item 3.
 
-1. Create the folder `browserstack-automate-playwright-python` in your skills folder and download this file into it as `SKILL.md`:
+1. Create the folder `browserstack-automate-playwright-python` in your skills folder and download this file into it as `SKILL.md`.
+   Replace `<skills-folder>` with the absolute path of your agent's project-level skills folder:
    ```bash
-   mkdir -p "<skills-folder>/browserstack-automate-playwright-python" && curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-python/SKILL.md -o "<skills-folder>/browserstack-automate-playwright-python/SKILL.md" || rmdir -p "<skills-folder>/browserstack-automate-playwright-python" 2>/dev/null
+   D="<skills-folder>/browserstack-automate-playwright-python"
+   if ! mkdir -p "$D"; then
+     echo "INSTALL FAILED: cannot create $D"; false
+   elif curl -fsSL https://raw.githubusercontent.com/browserstack/agent-skills/main/automate/playwright-python/SKILL.md -o "$D/SKILL.md.part"; then
+     mv "$D/SKILL.md.part" "$D/SKILL.md" && echo "INSTALLED: $D/SKILL.md"
+   else
+     rm -f "$D/SKILL.md.part"; echo "DOWNLOAD FAILED"; false
+   fi
    ```
-   Replace `<skills-folder>` with your agent's project-level skills folder. The skill stays
-   installed for future sessions.
-2. Tell the user in one line that the skill is installed, then continue in this session. Do not
-   ask them to restart.
+   Go by the printed line. In the steps below, write the full path, since `$D` doesn't carry over
+   to your next command.
+2. **If it printed `DOWNLOAD FAILED`** (no network, or an HTTP error such as 404), install the copy
+   you are following instead: write this file's full text, unchanged, to
+   `<skills-folder>/browserstack-automate-playwright-python/SKILL.md` (if you have
+   it as a file on disk, copy that file). Save it only if you have every line, from the opening `---`
+   to the last line, `<!-- end of browserstack-automate-playwright-python -->`; a summary or shortened page (some web tools return
+   one) is not the skill.
+3. **Check the installed file** (either way):
+   ```bash
+   sed -n 1,2p "<skills-folder>/browserstack-automate-playwright-python/SKILL.md"; tail -n 1 "<skills-folder>/browserstack-automate-playwright-python/SKILL.md"
+   ```
+   Expect `---`, `name: browserstack-automate-playwright-python` and `<!-- end of browserstack-automate-playwright-python -->`. If any is missing, delete that
+   `SKILL.md` and follow the paragraph below.
+4. Tell the user in one line that the skill is installed (from GitHub, or from the copy you were
+   given) and stays installed for future sessions, then continue in this session. Do not ask them
+   to restart.
 
-If the download fails for any reason (no network, an HTTP error such as 404, or no writable
-skills folder), say so in one line and carry on using this file for this session only. Installing
-is a convenience; never block the run on it. To update the skill later, delete the folder and run
-the prompt again.
+If you can't install a complete copy (no writable skills folder, or only partial text), remove the
+empty folder (`rmdir "<skills-folder>/browserstack-automate-playwright-python"`), say so in one line and carry on using this file for this session only.
+Installing is a convenience; never block the run on it. To update the skill later, delete the
+folder and run the prompt again.
 
 ## Ground rules
 
@@ -389,7 +410,7 @@ BUILD_NAME="<the buildName you set>"
 curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds.json?limit=100" \
   | python3 -c "import sys,json; n=sys.argv[1]; [print(b['automation_build']['hashed_id'], b['automation_build']['name']) for b in json.load(sys.stdin) if b['automation_build']['name'].startswith(n)]" "$BUILD_NAME"
 curl -su "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" "https://api.browserstack.com/automate/builds/<hashed_id>/sessions.json?limit=100" \
-  | python3 -c "import sys,json; [print(s['automation_session'].get('os'), s['automation_session'].get('browser') or '', s['automation_session'].get('device') or '', '|', s['automation_session']['status'], '|', s['automation_session'].get('name')) for s in json.load(sys.stdin)]"
+  | python3 -c "import sys,json; [print(' '.join(str(a[k]) for k in ('device','os','os_version','browser','browser_version') if a.get(k)), '|', a['status'], '|', a.get('name')) for a in (s['automation_session'] for s in json.load(sys.stdin))]"
 ```
 
 - The sessions call returns 10 sessions unless you pass `limit` (as above); for builds with more
@@ -522,3 +543,5 @@ A2 to A4.
 | Your tests | `.venv/bin/browserstack-sdk pytest` |
 | Current SDK version | `.venv/bin/python -c "import browserstack_sdk._version as v; print(v.__version__)"` |
 | Docs | https://www.browserstack.com/docs/automate/playwright/getting-started/python |
+
+<!-- end of browserstack-automate-playwright-python -->
